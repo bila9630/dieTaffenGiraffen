@@ -214,7 +214,7 @@ const ChatBox = () => {
                 </Card>
               </div>
             ) : (
-              <ScrollArea className="h-80 p-4" ref={scrollRef}>
+              <ScrollArea className="h-60 p-4" ref={scrollRef}>
                 <div className="space-y-4">
                   {messages.map((message) => (
                     <div
