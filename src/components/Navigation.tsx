@@ -1,15 +1,19 @@
-import { Menu, Home, BarChart3, Map } from 'lucide-react';
+import { Menu, Home, BarChart3, Map, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import SettingsDialog from '@/components/SettingsDialog';
 
 const Navigation = () => {
   const location = useLocation();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
@@ -36,7 +40,7 @@ const Navigation = () => {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
-            
+
             return (
               <DropdownMenuItem key={item.path} asChild>
                 <Link
@@ -51,8 +55,17 @@ const Navigation = () => {
               </DropdownMenuItem>
             );
           })}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={() => setSettingsOpen(true)}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 };

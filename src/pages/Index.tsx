@@ -4,9 +4,11 @@ import ChatBox from '@/components/ChatBox';
 import Navigation from '@/components/Navigation';
 import InfoBox from '@/components/InfoBox';
 import WeatherBox from '@/components/WeatherBox';
+import { useBoxVisibility } from '@/hooks/useBoxVisibility';
 
 const Index = () => {
   const mapRef = useRef<MapRef>(null);
+  const { settings } = useBoxVisibility();
 
   const handleZoomToLocation = async (location: string) => {
     if (mapRef.current) {
@@ -24,11 +26,15 @@ const Index = () => {
     <div className="relative h-screen w-full overflow-hidden bg-background">
       <Map ref={mapRef} />
       <Navigation />
-      <div className="fixed right-6 top-6 z-50 flex flex-col gap-4">
-        <InfoBox />
-        <WeatherBox />
-      </div>
-      <ChatBox onZoomToLocation={handleZoomToLocation} onDisplayMarkers={handleDisplayMarkers} />
+      {(settings.infoBox || settings.weatherBox) && (
+        <div className="fixed right-6 top-6 z-50 flex flex-col gap-4">
+          {settings.infoBox && <InfoBox />}
+          {settings.weatherBox && <WeatherBox />}
+        </div>
+      )}
+      {settings.chatBox && (
+        <ChatBox onZoomToLocation={handleZoomToLocation} onDisplayMarkers={handleDisplayMarkers} />
+      )}
     </div>
   );
 };
