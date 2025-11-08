@@ -60,14 +60,4 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
-  }
-
-  .destination-popup .mapboxgl-popup-content {
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-  }
-
-  .destination-popup .mapboxgl-popup-tip {
-    display: none !important;
-  }
+}
