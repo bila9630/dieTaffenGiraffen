@@ -160,8 +160,8 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
           'source-layer': 'country_boundaries',
           filter: ['!=', ['get', 'iso_3166_1'], 'AT'],
           paint: {
-            'fill-color': '#1a1a1a',
-            'fill-opacity': 0.95
+            'fill-color': '#000000',
+            'fill-opacity': 1.0
           }
         }, firstSymbolId);
 
