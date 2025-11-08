@@ -9,8 +9,10 @@ const Index = () => {
     <div className="relative h-screen w-full overflow-hidden bg-background">
       <Map />
       <Navigation />
-      <InfoBox />
-      <WeatherBox />
+      <div className="fixed right-6 top-6 z-50 flex flex-col gap-4">
+        <InfoBox />
+        <WeatherBox />
+      </div>
       <ChatBox />
     </div>
   );

@@ -22,8 +22,7 @@ const InfoBox = () => {
   const peakTime = "12pm - 1pm";
 
   return (
-    <div className="fixed right-6 top-6 z-50">
-      <Card className="w-72 border-glass-border bg-card/70 backdrop-blur-xl">
+    <Card className="w-72 border-glass-border bg-card/70 backdrop-blur-xl">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -93,7 +92,6 @@ const InfoBox = () => {
           </CardContent>
         )}
       </Card>
-    </div>
   );
 };
 
