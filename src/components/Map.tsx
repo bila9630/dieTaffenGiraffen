@@ -350,6 +350,47 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
 
     let currentIndex = 0;
     let flyoverTimeout: NodeJS.Timeout;
+    let preloadComplete = false;
+
+    // Preload all destination tiles first
+    const preloadDestinations = async () => {
+      if (!map.current) return;
+      
+      console.log('Preloading tiles for', newDestinations.length, 'destinations...');
+      
+      // Save current position
+      const originalCenter = map.current.getCenter();
+      const originalZoom = map.current.getZoom();
+      
+      // Quickly visit each destination to trigger tile loading (invisible to user)
+      for (const destination of newDestinations) {
+        map.current.jumpTo({
+          center: destination.coordinates,
+          zoom: 15,
+        });
+        
+        // Wait for tiles to load
+        await new Promise<void>((resolve) => {
+          map.current?.once('idle', () => resolve());
+        });
+      }
+      
+      // Return to original position
+      map.current.jumpTo({
+        center: originalCenter,
+        zoom: originalZoom,
+      });
+      
+      await new Promise<void>((resolve) => {
+        map.current?.once('idle', () => resolve());
+      });
+      
+      console.log('Preloading complete! Starting flyover...');
+      preloadComplete = true;
+      
+      // Start the actual flyover
+      flyToNextDestination();
+    };
 
     const flyToNextDestination = () => {
       if (currentIndex >= newDestinations.length) {
@@ -381,9 +422,9 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
         curve: 1.4,
       });
 
-      // Wait for map to finish loading tiles before showing popup and moving to next
-      map.current?.once('idle', () => {
-        // Show popup after tiles are loaded
+      // Wait for map to finish flying before showing popup
+      map.current?.once('moveend', () => {
+        // Show popup after arrival
         if (map.current) {
           new mapboxgl.Popup({ closeButton: false, className: 'destination-popup' })
             .setLngLat(destination.coordinates)
@@ -398,8 +439,8 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
       });
     };
 
-    // Start the flyover
-    flyToNextDestination();
+    // Start preloading
+    preloadDestinations();
 
     return () => {
       clearTimeout(flyoverTimeout);
