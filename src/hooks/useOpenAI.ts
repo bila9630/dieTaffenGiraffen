@@ -2,6 +2,7 @@ import { useState } from 'react';
 import OpenAI from 'openai';
 import { useToast } from '@/hooks/use-toast';
 import { ChatCompletionMessageToolCall } from 'openai/resources/chat/completions';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
@@ -10,8 +11,18 @@ interface Message {
   timestamp: Date;
 }
 
+export interface POIMarker {
+  id: number;
+  name: string;
+  lat: number;
+  lon: number;
+  rating?: number;
+  image_url?: string;
+}
+
 interface UseOpenAIOptions {
   onZoomToLocation?: (location: string) => Promise<void>;
+  onDisplayMarkers?: (markers: POIMarker[]) => Promise<void>;
 }
 
 /**
@@ -35,7 +46,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -92,6 +103,17 @@ export const useOpenAI = ({ onZoomToLocation }: UseOpenAIOptions = {}) => {
               },
             },
           },
+          {
+            type: 'function',
+            function: {
+              name: 'top_5_linz_attractions',
+              description: 'Fetch and display the top 5 attractions in Linz on the map as markers.',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
         ],
         tool_choice: 'auto',
       });
@@ -104,6 +126,24 @@ export const useOpenAI = ({ onZoomToLocation }: UseOpenAIOptions = {}) => {
           if (toolCall.type === 'function' && toolCall.function?.name === 'zoom_to_location') {
             const args = JSON.parse(toolCall.function.arguments);
             await onZoomToLocation?.(args.location);
+          } else if (toolCall.type === 'function' && toolCall.function?.name === 'top_5_linz_attractions') {
+            // Fetch top 5 POIs from Supabase
+            const { data, error } = await supabase
+              .from('pois')
+              .select('id, name, lat, lon')
+              .order('id', { ascending: true })
+              .limit(5);
+
+            if (error) {
+              console.error('Error fetching POIs:', error);
+              toast({
+                title: "Error",
+                description: "Failed to fetch attractions data.",
+                variant: "destructive",
+              });
+            } else if (data && onDisplayMarkers) {
+              await onDisplayMarkers(data);
+            }
           }
         }
       }
