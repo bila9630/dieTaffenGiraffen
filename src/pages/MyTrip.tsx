@@ -11,7 +11,7 @@ const MyTrip = () => {
       date: "June 15-22, 2024",
       status: "Completed",
       travelers: 2,
-      highlights: ["Eiffel Towers", "Louvre Museum", "Notre-Dame"],
+      highlights: ["Eiffel Tower", "Louvre Museum", "Notre-Dame"],
     },
     {
       id: 2,
