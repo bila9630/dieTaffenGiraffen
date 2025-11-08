@@ -20,6 +20,19 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Re-initialize map when token changes
+  useEffect(() => {
+    if (savedToken && map.current) {
+      // Map already exists, no need to reinitialize
+      return;
+    }
+    if (savedToken && !map.current) {
+      setTimeout(() => {
+        initializeMap(savedToken);
+      }, 100);
+    }
+  }, [savedToken]);
+
   const initializeMap = (token: string) => {
     if (!mapContainer.current) return;
 
@@ -187,23 +200,19 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
     }
   };
 
+  // Cleanup on unmount
   useEffect(() => {
-    if (savedToken) {
-      setTimeout(() => {
-        initializeMap(savedToken);
-      }, 100);
-    }
-
     return () => {
       if (map.current) {
         try {
           map.current.remove();
+          map.current = null;
         } catch (e) {
           console.error('Error removing map:', e);
         }
       }
     };
-  }, [savedToken]);
+  }, []);
 
   // Handle destination highlighting
   useEffect(() => {
