@@ -8,13 +8,13 @@ const WeatherBox = () => {
 
   // Mock weather data for the week
   const weeklyWeather = [
-    { day: "Mon", temp: 72, condition: "sunny" },
-    { day: "Tue", temp: 68, condition: "cloudy" },
-    { day: "Wed", temp: 65, condition: "rainy" },
-    { day: "Thu", temp: 70, condition: "sunny" },
-    { day: "Fri", temp: 73, condition: "sunny" },
-    { day: "Sat", temp: 69, condition: "cloudy" },
-    { day: "Sun", temp: 71, condition: "sunny" },
+    { day: "Mon", temp: 22, condition: "sunny" },
+    { day: "Tue", temp: 20, condition: "cloudy" },
+    { day: "Wed", temp: 18, condition: "rainy" },
+    { day: "Thu", temp: 21, condition: "sunny" },
+    { day: "Fri", temp: 23, condition: "sunny" },
+    { day: "Sat", temp: 21, condition: "cloudy" },
+    { day: "Sun", temp: 22, condition: "sunny" },
   ];
 
   const todayWeather = weeklyWeather[0];
@@ -59,7 +59,7 @@ const WeatherBox = () => {
                 <p className="text-xs text-muted-foreground">Today's Temperature</p>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-foreground">{todayWeather.temp}°F</span>
+                <span className="text-3xl font-bold text-foreground">{todayWeather.temp}°C</span>
                 {getWeatherIcon(todayWeather.condition)}
               </div>
             </div>
