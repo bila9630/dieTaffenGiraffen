@@ -1,10 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
-const Map = () => {
+export interface MapRef {
+  flyToLocation: (location: string) => Promise<void>;
+}
+
+const Map = forwardRef<MapRef>((props, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapboxToken, setMapboxToken] = useState('');
@@ -128,6 +132,43 @@ const Map = () => {
     }
   };
 
+  // Expose flyToLocation method via ref
+  useImperativeHandle(ref, () => ({
+    flyToLocation: async (location: string) => {
+      if (!map.current || !savedToken) {
+        console.error('Map not initialized');
+        return;
+      }
+
+      try {
+        // Use Mapbox Geocoding API to convert location name to coordinates
+        const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${savedToken}&limit=1`;
+        const response = await fetch(geocodeUrl);
+        const data = await response.json();
+
+        if (data.features && data.features.length > 0) {
+          const [lng, lat] = data.features[0].center;
+          const placeName = data.features[0].place_name;
+
+          // Fly to the location
+          map.current.flyTo({
+            center: [lng, lat],
+            zoom: 10,
+            duration: 2500,
+            essential: true,
+          });
+
+          toast.success(`Zooming to ${placeName}`);
+        } else {
+          toast.error(`Location "${location}" not found`);
+        }
+      } catch (error) {
+        console.error('Error geocoding location:', error);
+        toast.error('Failed to find location');
+      }
+    },
+  }));
+
   useEffect(() => {
     if (savedToken) {
       setTimeout(() => {
@@ -191,6 +232,8 @@ const Map = () => {
       <div ref={mapContainer} className="w-full h-full" />
     </div>
   );
-};
+});
+
+Map.displayName = 'Map';
 
 export default Map;
