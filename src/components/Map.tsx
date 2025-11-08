@@ -124,7 +124,19 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
         map.current?.setPaintProperty('admin-1-boundary', 'line-color', '#4a5568');
         map.current?.setPaintProperty('admin-1-boundary', 'line-width', 1.5);
 
-        // Add a layer to mask everything except Austria
+        // Find the first symbol layer to insert mask before labels
+        const styleLayers = map.current?.getStyle().layers;
+        let firstSymbolId: string | undefined;
+        if (styleLayers) {
+          for (const layer of styleLayers) {
+            if (layer.type === 'symbol') {
+              firstSymbolId = layer.id;
+              break;
+            }
+          }
+        }
+
+        // Add a layer to mask everything except Austria (before labels)
         map.current?.addLayer({
           id: 'country-mask',
           type: 'fill',
@@ -135,14 +147,13 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
           'source-layer': 'country_boundaries',
           filter: ['!=', ['get', 'iso_3166_1'], 'AT'],
           paint: {
-            'fill-color': '#d4d4d4',
-            'fill-opacity': 0.7
+            'fill-color': '#bdbdbd',
+            'fill-opacity': 0.85
           }
-        });
+        }, firstSymbolId);
 
-        // Hide street/road layers
-        const layers = map.current?.getStyle().layers;
-        layers?.forEach((layer) => {
+        // Hide street/road layers and enhance labels
+        styleLayers?.forEach((layer) => {
           if (layer.id.includes('road') || layer.id.includes('street') || layer.id.includes('bridge') || layer.id.includes('tunnel')) {
             map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
           }
