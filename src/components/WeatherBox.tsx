@@ -33,7 +33,7 @@ const WeatherBox = () => {
   };
 
   return (
-    <div className="fixed right-6 top-[200px] z-50">
+    <div className="fixed right-6 top-52 z-50">
       <Card className="w-72 border-glass-border bg-card/70 backdrop-blur-xl">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
