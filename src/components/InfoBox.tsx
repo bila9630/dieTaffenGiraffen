@@ -7,17 +7,17 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 const InfoBox = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
-  // Mock data for visitor volume during the day (hourly)
+  // Mock data for visitor capacity during the day (hourly percentages)
   const dailyData = [
-    { time: "6am", visitors: 120 },
-    { time: "9am", visitors: 340 },
-    { time: "12pm", visitors: 680 },
-    { time: "3pm", visitors: 520 },
-    { time: "6pm", visitors: 280 },
-    { time: "9pm", visitors: 140 },
+    { time: "6am", capacity: 15 },
+    { time: "9am", capacity: 42 },
+    { time: "12pm", capacity: 95 },
+    { time: "3pm", capacity: 68 },
+    { time: "6pm", capacity: 35 },
+    { time: "9pm", capacity: 18 },
   ];
 
-  const totalVisitors = dailyData.reduce((sum, item) => sum + item.visitors, 0);
+  const currentCapacity = dailyData[2].capacity; // Using 12pm as current time
   const recommendedTime = "6am - 9am";
   const peakTime = "12pm - 1pm";
 
@@ -45,10 +45,10 @@ const InfoBox = () => {
             {/* Main Metric */}
             <div className="space-y-1">
               <div className="flex items-baseline justify-between">
-                <p className="text-xs text-muted-foreground">Today's Total Visitors</p>
+                <p className="text-xs text-muted-foreground">Current Capacity</p>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-yellow-500">{totalVisitors.toLocaleString()}</span>
+                <span className="text-3xl font-bold text-yellow-500">{currentCapacity}%</span>
               </div>
             </div>
 
@@ -73,7 +73,7 @@ const InfoBox = () => {
                     }}
                     labelStyle={{ color: "hsl(var(--foreground))" }}
                   />
-                  <Line type="monotone" dataKey="visitors" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="capacity" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
