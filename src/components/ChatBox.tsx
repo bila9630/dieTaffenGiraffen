@@ -17,7 +17,7 @@ const ChatBox = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hello! I\'m your travel planning assistant. Tell me where you\'d like to go, and I\'ll help you plan the perfect trip!',
+      text: 'Grüß Gott! I\'m your Austrian travel assistant. I specialize in helping you discover the beautiful destinations across Austria - from the majestic Alps to charming villages and historic cities. What would you like to explore?',
       sender: 'ai',
       timestamp: new Date(),
     },
@@ -106,7 +106,7 @@ const ChatBox = () => {
           messages: [
             {
               role: 'system',
-              content: 'You are a helpful travel planning assistant. Provide concise, friendly advice about destinations, itineraries, and travel tips.',
+              content: 'You are an Austrian travel specialist and planning assistant. Your primary focus is on promoting and recommending Austrian destinations including Vienna, Salzburg, Innsbruck, Graz, the Austrian Alps, Hallstatt, Wachau Valley, and other beautiful locations within Austria. When users ask for travel advice, always prioritize Austrian destinations first. Provide detailed information about Austrian culture, cuisine, attractions, hiking trails, ski resorts, and local experiences. If users specifically ask about non-Austrian destinations, you can provide brief information but gently redirect them to consider Austrian alternatives. Be enthusiastic about Austria\'s natural beauty, rich history, and cultural heritage.',
             },
             ...messages.map((msg) => ({
               role: msg.sender === 'user' ? 'user' : 'assistant',
