@@ -159,9 +159,9 @@ const ChatBox = ({ onDestinationsFound }: ChatBoxProps) => {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-3rem)]">
-      <div className="overflow-hidden rounded-xl border border-glass-border bg-card/70 shadow-2xl backdrop-blur-xl">
+      <div className="overflow-hidden rounded-xl border border-glass-border bg-[#d4c4b0]/80 shadow-2xl backdrop-blur-xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border/50 bg-card/50 p-4">
+        <div className="flex items-center justify-between border-b border-border/50 bg-[#c9b89a]/60 p-4">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20">
               <MessageCircle className="h-4 w-4 text-primary" />
