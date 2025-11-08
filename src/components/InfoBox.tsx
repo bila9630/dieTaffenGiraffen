@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -36,7 +36,7 @@ const InfoBox = () => {
               onClick={() => setIsExpanded(!isExpanded)}
               className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
             >
-              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {isExpanded ? '−' : '+'}
             </Button>
           </div>
         </CardHeader>
