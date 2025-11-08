@@ -1,12 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle } from 'lucide-react';
+import { Send, MessageCircle, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-
-// Replace with your OpenAI API key
-const OPENAI_API_KEY = 'your-api-key-here';
 
 interface Message {
   id: string;
@@ -27,6 +25,10 @@ const ChatBox = () => {
   const [inputValue, setInputValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKey, setApiKey] = useState<string>(() => {
+    return localStorage.getItem('openai_api_key') || '';
+  });
+  const [tempApiKey, setTempApiKey] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -36,14 +38,45 @@ const ChatBox = () => {
     }
   }, [messages]);
 
+  const handleSaveApiKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedKey = tempApiKey.trim();
+    
+    if (!trimmedKey) {
+      toast({
+        title: "Invalid API Key",
+        description: "Please enter a valid OpenAI API key",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!trimmedKey.startsWith('sk-')) {
+      toast({
+        title: "Invalid API Key",
+        description: "OpenAI API keys should start with 'sk-'",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    localStorage.setItem('openai_api_key', trimmedKey);
+    setApiKey(trimmedKey);
+    setTempApiKey('');
+    toast({
+      title: "API Key Saved",
+      description: "Your OpenAI API key has been saved securely in your browser",
+    });
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
 
-    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-api-key-here') {
+    if (!apiKey) {
       toast({
         title: "API Key Required",
-        description: "Please add your OpenAI API key in ChatBox.tsx",
+        description: "Please enter your OpenAI API key to continue",
         variant: "destructive",
       });
       return;
@@ -65,7 +98,7 @@ const ChatBox = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
@@ -138,8 +171,50 @@ const ChatBox = () => {
         {/* Messages */}
         {isExpanded && (
           <>
-            <ScrollArea className="h-80 p-4" ref={scrollRef}>
-              <div className="space-y-4">
+            {!apiKey ? (
+              <div className="p-4">
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Key className="h-5 w-5 text-primary" />
+                      OpenAI API Key Required
+                    </CardTitle>
+                    <CardDescription>
+                      Enter your OpenAI API key to start chatting. Your key is stored securely in your browser.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleSaveApiKey} className="space-y-4">
+                      <div className="space-y-2">
+                        <Input
+                          type="password"
+                          placeholder="sk-..."
+                          value={tempApiKey}
+                          onChange={(e) => setTempApiKey(e.target.value)}
+                          className="bg-input/50 backdrop-blur-sm"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Get your API key from{' '}
+                          <a
+                            href="https://platform.openai.com/api-keys"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            OpenAI Platform
+                          </a>
+                        </p>
+                      </div>
+                      <Button type="submit" className="w-full">
+                        Save API Key
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <ScrollArea className="h-80 p-4" ref={scrollRef}>
+                <div className="space-y-4">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -162,11 +237,13 @@ const ChatBox = () => {
                     </div>
                   </div>
                 ))}
-              </div>
-            </ScrollArea>
+                </div>
+              </ScrollArea>
+            )}
 
             {/* Input */}
-            <form onSubmit={handleSendMessage} className="border-t border-border/50 bg-card/50 p-4">
+            {apiKey && (
+              <form onSubmit={handleSendMessage} className="border-t border-border/50 bg-card/50 p-4">
               <div className="flex gap-2">
                 <Input
                   type="text"
@@ -185,6 +262,7 @@ const ChatBox = () => {
                 </Button>
               </div>
             </form>
+            )}
           </>
         )}
       </div>
