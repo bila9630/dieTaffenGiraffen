@@ -4,13 +4,24 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
+export interface POIMarker {
+  id: number;
+  name: string;
+  lat: number;
+  lon: number;
+  rating?: number;
+  image_url?: string;
+}
+
 export interface MapRef {
   flyToLocation: (location: string) => Promise<void>;
+  displayMarkers: (markers: POIMarker[]) => Promise<void>;
 }
 
 const Map = forwardRef<MapRef>((props, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markers = useRef<mapboxgl.Marker[]>([]);
   const [mapboxToken, setMapboxToken] = useState('');
   const [savedToken, setSavedToken] = useState<string>(() => {
     return import.meta.env.VITE_MAPBOX_KEY || localStorage.getItem('mapbox_token') || '';
@@ -132,7 +143,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
     }
   };
 
-  // Expose flyToLocation method via ref
+  // Expose flyToLocation and displayMarkers methods via ref
   useImperativeHandle(ref, () => ({
     flyToLocation: async (location: string) => {
       if (!map.current || !savedToken) {
@@ -162,6 +173,41 @@ const Map = forwardRef<MapRef>((props, ref) => {
       } catch (error) {
         console.error('Error geocoding location:', error);
         toast.error('Failed to find location');
+      }
+    },
+    displayMarkers: async (poiMarkers: POIMarker[]) => {
+      if (!map.current) {
+        console.error('Map not initialized');
+        return;
+      }
+
+      // Remove existing markers
+      markers.current.forEach(marker => marker.remove());
+      markers.current = [];
+
+      // Add new markers
+      poiMarkers.forEach(poi => {
+        const marker = new mapboxgl.Marker({ color: '#ef4444' })
+          .setLngLat([poi.lon, poi.lat])
+          .setPopup(
+            new mapboxgl.Popup({ offset: 25 })
+              .setHTML(`
+                <div style="padding: 8px;">
+                  <h3 style="font-weight: bold; margin-bottom: 4px;">${poi.name}</h3>
+                  ${poi.rating ? `<p style="font-size: 12px;">Rating: ${poi.rating}</p>` : ''}
+                </div>
+              `)
+          )
+          .addTo(map.current!);
+
+        markers.current.push(marker);
+      });
+
+      // Zoom to show all markers
+      if (poiMarkers.length > 0) {
+        const bounds = new mapboxgl.LngLatBounds();
+        poiMarkers.forEach(poi => bounds.extend([poi.lon, poi.lat]));
+        map.current.fitBounds(bounds, { padding: 100, maxZoom: 12, duration: 2000 });
       }
     },
   }));

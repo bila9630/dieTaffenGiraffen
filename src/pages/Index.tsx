@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import Map, { MapRef } from '@/components/Map';
+import Map, { MapRef, POIMarker } from '@/components/Map';
 import ChatBox from '@/components/ChatBox';
 import Navigation from '@/components/Navigation';
 import InfoBox from '@/components/InfoBox';
@@ -14,6 +14,12 @@ const Index = () => {
     }
   };
 
+  const handleDisplayMarkers = async (markers: POIMarker[]) => {
+    if (mapRef.current) {
+      await mapRef.current.displayMarkers(markers);
+    }
+  };
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       <Map ref={mapRef} />
@@ -22,7 +28,7 @@ const Index = () => {
         <InfoBox />
         <WeatherBox />
       </div>
-      <ChatBox onZoomToLocation={handleZoomToLocation} />
+      <ChatBox onZoomToLocation={handleZoomToLocation} onDisplayMarkers={handleDisplayMarkers} />
     </div>
   );
 };

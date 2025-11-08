@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useOpenAI, getOpenAIKey } from '@/hooks/useOpenAI';
+import { useOpenAI, getOpenAIKey, POIMarker } from '@/hooks/useOpenAI';
 
 interface Message {
   id: string;
@@ -16,9 +16,10 @@ interface Message {
 
 interface ChatBoxProps {
   onZoomToLocation?: (location: string) => Promise<void>;
+  onDisplayMarkers?: (markers: POIMarker[]) => Promise<void>;
 }
 
-const ChatBox = ({ onZoomToLocation }: ChatBoxProps) => {
+const ChatBox = ({ onZoomToLocation, onDisplayMarkers }: ChatBoxProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -33,7 +34,7 @@ const ChatBox = ({ onZoomToLocation }: ChatBoxProps) => {
   const [tempApiKey, setTempApiKey] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { sendMessage, isLoading } = useOpenAI({ onZoomToLocation });
+  const { sendMessage, isLoading } = useOpenAI({ onZoomToLocation, onDisplayMarkers });
 
   useEffect(() => {
     if (scrollRef.current) {
