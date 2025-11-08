@@ -137,19 +137,10 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
         map.current?.setPaintProperty('admin-1-boundary', 'line-color', '#4a5568');
         map.current?.setPaintProperty('admin-1-boundary', 'line-width', 1.5);
 
-        // Find the first symbol layer to insert mask before labels
+        // Find all symbol layers
         const styleLayers = map.current?.getStyle().layers;
-        let firstSymbolId: string | undefined;
-        if (styleLayers) {
-          for (const layer of styleLayers) {
-            if (layer.type === 'symbol') {
-              firstSymbolId = layer.id;
-              break;
-            }
-          }
-        }
-
-        // Add a layer to mask everything except Austria (before labels)
+        
+        // Add a layer to mask everything except Austria (AFTER all layers to cover labels)
         map.current?.addLayer({
           id: 'country-mask',
           type: 'fill',
@@ -163,7 +154,7 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
             'fill-color': '#000000',
             'fill-opacity': 1.0
           }
-        }, firstSymbolId);
+        }); // Add at the very top (no beforeId parameter)
 
         // Hide street/road layers and enhance labels
         styleLayers?.forEach((layer) => {
