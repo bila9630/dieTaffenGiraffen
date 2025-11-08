@@ -195,39 +195,57 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
     }
 
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        try {
+          map.current.remove();
+        } catch (e) {
+          console.error('Error removing map:', e);
+        }
+      }
     };
   }, [savedToken]);
 
   // Handle destination highlighting
   useEffect(() => {
-    if (!map.current || !destinations.length) {
-      // Remove highlight layers if no destinations
-      if (map.current?.getLayer('destination-highlights')) {
-        map.current.removeLayer('destination-highlights');
+    if (!map.current) return;
+
+    const mapInstance = map.current;
+    
+    // Remove layers only if they exist and map is loaded
+    const removeExistingLayers = () => {
+      if (!mapInstance.isStyleLoaded()) return;
+      
+      if (mapInstance.getLayer('destination-highlights')) {
+        mapInstance.removeLayer('destination-highlights');
       }
-      if (map.current?.getLayer('destination-glow')) {
-        map.current.removeLayer('destination-glow');
+      if (mapInstance.getLayer('destination-glow')) {
+        mapInstance.removeLayer('destination-glow');
       }
-      if (map.current?.getSource('destinations')) {
-        map.current.removeSource('destinations');
+      if (mapInstance.getSource('destinations')) {
+        mapInstance.removeSource('destinations');
       }
+    };
+
+    if (!destinations.length) {
+      removeExistingLayers();
       return;
     }
 
-    const mapInstance = map.current;
-
-    // Wait for map to be loaded
+    // Wait for map to be loaded before adding layers
     if (!mapInstance.isStyleLoaded()) {
-      mapInstance.once('styledata', () => {
+      const styleLoadHandler = () => {
         addDestinationLayers();
-      });
+      };
+      mapInstance.once('styledata', styleLoadHandler);
+      return () => {
+        mapInstance.off('styledata', styleLoadHandler);
+      };
     } else {
       addDestinationLayers();
     }
 
     function addDestinationLayers() {
-      if (!mapInstance) return;
+      if (!mapInstance || !mapInstance.isStyleLoaded()) return;
 
       // Remove existing layers and source
       if (mapInstance.getLayer('destination-highlights')) {
