@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { createOpenAIClient, getOpenAIKey } from '@/lib/openai';
 
 interface Message {
   id: string;
@@ -25,10 +26,7 @@ const ChatBox = () => {
   const [inputValue, setInputValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const envApiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
-  const [apiKey, setApiKey] = useState<string>(() => {
-    return envApiKey || localStorage.getItem('openai_api_key') || '';
-  });
+  const [apiKey, setApiKey] = useState<string>(() => getOpenAIKey());
   const [tempApiKey, setTempApiKey] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -95,46 +93,36 @@ const ChatBox = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a helpful travel planning assistant. Provide concise, friendly advice about destinations, itineraries, and travel tips.',
-            },
-            ...messages.map((msg) => ({
-              role: msg.sender === 'user' ? 'user' : 'assistant',
-              content: msg.text,
-            })),
-            {
-              role: 'user',
-              content: newMessage.text,
-            },
-          ],
-        }),
+      const openai = createOpenAIClient(apiKey);
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful travel planning assistant. Provide concise, friendly advice about destinations, itineraries, and travel tips.',
+          },
+          ...messages.map((msg) => ({
+            role: msg.sender === 'user' ? ('user' as const) : ('assistant' as const),
+            content: msg.text,
+          })),
+          {
+            role: 'user',
+            content: newMessage.text,
+          },
+        ],
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response from ChatGPT');
-      }
-
-      const data = await response.json();
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.choices[0].message.content,
+        text: completion.choices[0].message.content || 'Sorry, I could not generate a response.',
         sender: 'ai',
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, aiResponse]);
     } catch (error) {
-      console.error('Error calling ChatGPT:', error);
+      console.error('Error calling OpenAI:', error);
       toast({
         title: "Error",
         description: "Failed to get AI response. Please check your API key and try again.",
@@ -237,6 +225,23 @@ const ChatBox = () => {
                       </div>
                     </div>
                   ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] rounded-lg bg-secondary px-4 py-2 text-secondary-foreground">
+                        <div className="flex gap-1">
+                          <span className="animate-bounce text-sm" style={{ animationDelay: '0ms' }}>
+                            .
+                          </span>
+                          <span className="animate-bounce text-sm" style={{ animationDelay: '150ms' }}>
+                            .
+                          </span>
+                          <span className="animate-bounce text-sm" style={{ animationDelay: '300ms' }}>
+                            .
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             )}
