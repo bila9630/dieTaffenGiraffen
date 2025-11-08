@@ -113,11 +113,22 @@ const Map = () => {
         map.current?.setPaintProperty('admin-0-boundary-disputed', 'line-color', '#2d3748');
         map.current?.setPaintProperty('admin-0-boundary-disputed', 'line-width', 2.5);
 
+        // Make canton/state borders more visible
+        map.current?.setPaintProperty('admin-1-boundary', 'line-color', '#4a5568');
+        map.current?.setPaintProperty('admin-1-boundary', 'line-width', 1.5);
+
         // Hide street/road layers
         const layers = map.current?.getStyle().layers;
         layers?.forEach((layer) => {
           if (layer.id.includes('road') || layer.id.includes('street') || layer.id.includes('bridge') || layer.id.includes('tunnel')) {
             map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+          }
+          // Make city labels and symbols bigger
+          if (layer.id.includes('settlement') || layer.id.includes('place-label')) {
+            if (layer.type === 'symbol') {
+              map.current?.setLayoutProperty(layer.id, 'text-size', ['interpolate', ['linear'], ['zoom'], 0, 14, 10, 20]);
+              map.current?.setLayoutProperty(layer.id, 'icon-size', 1.5);
+            }
           }
         });
       });
