@@ -349,9 +349,10 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
     if (!map.current || !triggerFlyover || newDestinations.length === 0) return;
 
     let currentIndex = 0;
-    const flyoverInterval = setInterval(() => {
+    let flyoverTimeout: NodeJS.Timeout;
+
+    const flyToNextDestination = () => {
       if (currentIndex >= newDestinations.length) {
-        clearInterval(flyoverInterval);
         // After flyover, show all destinations (including old and new)
         if (map.current && destinations.length > 1) {
           const bounds = new mapboxgl.LngLatBounds();
@@ -372,16 +373,17 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
       // Cinematic drone-like movement with higher zoom
       map.current?.flyTo({
         center: destination.coordinates,
-        zoom: 14 + Math.random() * 2, // Increased zoom from 12-13.5 to 14-16
-        pitch: 55 + Math.random() * 10, // More dramatic angle
+        zoom: 14 + Math.random() * 2,
+        pitch: 55 + Math.random() * 10,
         bearing: Math.random() * 60 - 30,
-        duration: 3000, // Slightly faster
+        duration: 3000,
         essential: true,
-        curve: 1.4, // Smoother curve
+        curve: 1.4,
       });
 
-      // Show popup during flyover
-      setTimeout(() => {
+      // Wait for map to finish loading tiles before showing popup and moving to next
+      map.current?.once('idle', () => {
+        // Show popup after tiles are loaded
         if (map.current) {
           new mapboxgl.Popup({ closeButton: false, className: 'destination-popup' })
             .setLngLat(destination.coordinates)
@@ -389,12 +391,19 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
             .addTo(map.current)
             .on('close', () => {});
         }
-      }, 1500);
-      
-      currentIndex++;
-    }, 3500); // Reduced from 4000ms to match faster duration
+        
+        // Wait 2 seconds to view the destination, then move to next
+        currentIndex++;
+        flyoverTimeout = setTimeout(flyToNextDestination, 2000);
+      });
+    };
 
-    return () => clearInterval(flyoverInterval);
+    // Start the flyover
+    flyToNextDestination();
+
+    return () => {
+      clearTimeout(flyoverTimeout);
+    };
   }, [triggerFlyover, newDestinations, destinations]);
 
   if (!savedToken) {
