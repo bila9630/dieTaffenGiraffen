@@ -148,7 +148,6 @@ const Map = forwardRef<MapRef>((props, ref) => {
 
         if (data.features && data.features.length > 0) {
           const [lng, lat] = data.features[0].center;
-          const placeName = data.features[0].place_name;
 
           // Fly to the location
           map.current.flyTo({
@@ -157,8 +156,6 @@ const Map = forwardRef<MapRef>((props, ref) => {
             duration: 2500,
             essential: true,
           });
-
-          toast.success(`Zooming to ${placeName}`);
         } else {
           toast.error(`Location "${location}" not found`);
         }

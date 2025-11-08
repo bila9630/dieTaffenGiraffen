@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { createOpenAIClient, getOpenAIKey } from '@/lib/openai';
+import { useOpenAI, getOpenAIKey } from '@/hooks/useOpenAI';
 
 interface Message {
   id: string;
@@ -29,11 +29,11 @@ const ChatBox = ({ onZoomToLocation }: ChatBoxProps) => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const [apiKey, setApiKey] = useState<string>(() => getOpenAIKey());
   const [tempApiKey, setTempApiKey] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { sendMessage, isLoading } = useOpenAI({ onZoomToLocation });
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -76,15 +76,6 @@ const ChatBox = ({ onZoomToLocation }: ChatBoxProps) => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
 
-    if (!apiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your OpenAI API key to continue",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const newMessage: Message = {
       id: Date.now().toString(),
       text: inputValue,
@@ -94,81 +85,11 @@ const ChatBox = ({ onZoomToLocation }: ChatBoxProps) => {
 
     setMessages((prev) => [...prev, newMessage]);
     setInputValue('');
-    setIsLoading(true);
 
-    try {
-      const openai = createOpenAIClient(apiKey);
+    const aiResponse = await sendMessage(newMessage, messages, apiKey);
 
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful travel planning assistant. Provide concise, friendly advice about destinations, itineraries, and travel tips. When users mention a specific destination or ask about a place, use the zoom_to_location function to show it on the map.',
-          },
-          ...messages.map((msg) => ({
-            role: msg.sender === 'user' ? ('user' as const) : ('assistant' as const),
-            content: msg.text,
-          })),
-          {
-            role: 'user',
-            content: newMessage.text,
-          },
-        ],
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'zoom_to_location',
-              description: 'Zoom the map to a specific location or destination. Use this when the user mentions a place they want to visit or learn about.',
-              parameters: {
-                type: 'object',
-                properties: {
-                  location: {
-                    type: 'string',
-                    description: 'The name of the location to zoom to (e.g., "Paris", "Tokyo", "Grand Canyon")',
-                  },
-                },
-                required: ['location'],
-              },
-            },
-          },
-        ],
-        tool_choice: 'auto',
-      });
-
-      const responseMessage = completion.choices[0].message;
-
-      // Handle function calls
-      if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
-        for (const toolCall of responseMessage.tool_calls) {
-          if (toolCall.function.name === 'zoom_to_location') {
-            const args = JSON.parse(toolCall.function.arguments);
-            if (onZoomToLocation) {
-              await onZoomToLocation(args.location);
-            }
-          }
-        }
-      }
-
-      // Add AI response message
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: responseMessage.content || 'I\'ve zoomed to that location on the map!',
-        sender: 'ai',
-        timestamp: new Date(),
-      };
-
+    if (aiResponse) {
       setMessages((prev) => [...prev, aiResponse]);
-    } catch (error) {
-      console.error('Error calling OpenAI:', error);
-      toast({
-        title: "Error",
-        description: "Failed to get AI response. Please check your API key and try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
