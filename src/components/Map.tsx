@@ -112,6 +112,14 @@ const Map = () => {
         map.current?.setPaintProperty('admin-0-boundary', 'line-width', 2.5);
         map.current?.setPaintProperty('admin-0-boundary-disputed', 'line-color', '#2d3748');
         map.current?.setPaintProperty('admin-0-boundary-disputed', 'line-width', 2.5);
+
+        // Hide street/road layers
+        const layers = map.current?.getStyle().layers;
+        layers?.forEach((layer) => {
+          if (layer.id.includes('road') || layer.id.includes('street') || layer.id.includes('bridge') || layer.id.includes('tunnel')) {
+            map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+          }
+        });
       });
     } catch (error) {
       console.error('Map initialization error:', error);
