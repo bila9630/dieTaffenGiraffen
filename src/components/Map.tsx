@@ -165,28 +165,14 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
           }
         }, firstSymbolId);
 
-        // Hide street/road layers, hide non-Austrian labels, and enhance Austrian labels
+        // Hide street/road layers and enhance labels
         styleLayers?.forEach((layer) => {
           if (layer.id.includes('road') || layer.id.includes('street') || layer.id.includes('bridge') || layer.id.includes('tunnel')) {
             map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
           }
-          // Hide all non-Austrian place labels and enhance Austrian ones
-          if (layer.id.includes('settlement') || layer.id.includes('place-label') || layer.id.includes('poi-label')) {
+          // Make city labels bigger (they'll be visible in Austria, masked elsewhere)
+          if (layer.id.includes('settlement') || layer.id.includes('place-label')) {
             if (layer.type === 'symbol') {
-              // Add a layer with Austrian cities only by creating a new filtered version
-              const currentFilter = map.current?.getFilter(layer.id);
-              
-              // Set filter to only show labels within Austria's bounding box
-              // Austria approximate bounds: [9.5, 46.4, 17.2, 49.0]
-              map.current?.setFilter(layer.id, [
-                'all',
-                ...(currentFilter ? [currentFilter] : []),
-                ['>=', ['get', 'longitude'], 9.5],
-                ['<=', ['get', 'longitude'], 17.2],
-                ['>=', ['get', 'latitude'], 46.4],
-                ['<=', ['get', 'latitude'], 49.0]
-              ]);
-              
               map.current?.setLayoutProperty(layer.id, 'text-size', ['interpolate', ['linear'], ['zoom'], 0, 14, 10, 20]);
               map.current?.setLayoutProperty(layer.id, 'icon-size', 1.5);
             }
