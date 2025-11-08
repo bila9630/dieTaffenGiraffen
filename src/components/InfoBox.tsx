@@ -7,30 +7,28 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 const InfoBox = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
-  // Mock data for visitor volume over the past week
-  const weeklyData = [
-    { day: 'Mon', visitors: 1120 },
-    { day: 'Tue', visitors: 1340 },
-    { day: 'Wed', visitors: 1180 },
-    { day: 'Thu', visitors: 1420 },
-    { day: 'Fri', visitors: 1580 },
-    { day: 'Sat', visitors: 1680 },
-    { day: 'Sun', visitors: 1247 },
+  // Mock data for visitor volume during the day (hourly)
+  const dailyData = [
+    { time: '6am', visitors: 120 },
+    { time: '9am', visitors: 340 },
+    { time: '12pm', visitors: 680 },
+    { time: '3pm', visitors: 520 },
+    { time: '6pm', visitors: 280 },
+    { time: '9pm', visitors: 140 },
   ];
 
-  const currentVisitors = weeklyData[weeklyData.length - 1].visitors;
-  const previousVisitors = weeklyData[weeklyData.length - 2].visitors;
-  const trend = ((currentVisitors - previousVisitors) / previousVisitors * 100).toFixed(1);
-  const trendDisplay = trend.startsWith('-') ? trend : `+${trend}`;
+  const totalVisitors = dailyData.reduce((sum, item) => sum + item.visitors, 0);
+  const recommendedTime = '6am - 9am';
+  const peakTime = '12pm - 1pm';
 
   return (
     <div className="fixed right-6 top-6 z-50">
-      <Card className="w-80 border-glass-border bg-card/70 backdrop-blur-xl">
+      <Card className="w-72 border-glass-border bg-card/70 backdrop-blur-xl">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground">
               <TrendingUp className="h-4 w-4 text-primary" />
-              Statistics
+              Visitors
             </CardTitle>
             <Button
               variant="ghost"
@@ -48,12 +46,11 @@ const InfoBox = () => {
             {/* Main Metric */}
             <div className="space-y-1">
               <div className="flex items-baseline justify-between">
-                <p className="text-xs text-muted-foreground">Visitor Volume</p>
-                <p className="text-xs text-muted-foreground">Last 7 Days</p>
+                <p className="text-xs text-muted-foreground">Total Today</p>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-primary">
-                  {trendDisplay}%
+                <span className="text-3xl font-bold text-yellow-500">
+                  {totalVisitors.toLocaleString()}
                 </span>
               </div>
             </div>
@@ -61,9 +58,9 @@ const InfoBox = () => {
             {/* Line Chart */}
             <div className="h-24">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weeklyData}>
+                <LineChart data={dailyData}>
                   <XAxis 
-                    dataKey="day" 
+                    dataKey="time"
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={10}
                     tickLine={false}
@@ -95,14 +92,12 @@ const InfoBox = () => {
             {/* Additional Stats */}
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div>
-                <p className="text-xs text-muted-foreground">Today</p>
-                <p className="text-xl font-bold text-foreground">{currentVisitors.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Recommended</p>
+                <p className="text-sm font-bold text-primary">{recommendedTime}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">vs. Yesterday</p>
-                <p className={`text-xl font-bold ${trend.startsWith('-') ? 'text-destructive' : 'text-primary'}`}>
-                  {trendDisplay}%
-                </p>
+                <p className="text-xs text-muted-foreground">Avoid Peak</p>
+                <p className="text-sm font-bold text-destructive">{peakTime}</p>
               </div>
             </div>
           </CardContent>
