@@ -369,15 +369,15 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
 
       const destination = newDestinations[currentIndex];
       
-      // Cinematic drone-like movement
+      // Cinematic drone-like movement with higher zoom
       map.current?.flyTo({
         center: destination.coordinates,
-        zoom: 12 + Math.random() * 1.5,
-        pitch: 50 + Math.random() * 15,
+        zoom: 14 + Math.random() * 2, // Increased zoom from 12-13.5 to 14-16
+        pitch: 55 + Math.random() * 10, // More dramatic angle
         bearing: Math.random() * 60 - 30,
-        duration: 3500,
+        duration: 3000, // Slightly faster
         essential: true,
-        curve: 1.2,
+        curve: 1.4, // Smoother curve
       });
 
       // Show popup during flyover
@@ -392,7 +392,7 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
       }, 1500);
       
       currentIndex++;
-    }, 4000);
+    }, 3500); // Reduced from 4000ms to match faster duration
 
     return () => clearInterval(flyoverInterval);
   }, [triggerFlyover, newDestinations, destinations]);
