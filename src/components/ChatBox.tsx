@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Send, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+
+// Replace with your OpenAI API key
+const OPENAI_API_KEY = 'your-api-key-here';
 
 interface Message {
   id: string;
@@ -22,10 +26,28 @@ const ChatBox = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isLoading) return;
+
+    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-api-key-here') {
+      toast({
+        title: "API Key Required",
+        description: "Please add your OpenAI API key in ChatBox.tsx",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -36,17 +58,57 @@ const ChatBox = () => {
 
     setMessages((prev) => [...prev, newMessage]);
     setInputValue('');
+    setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful travel planning assistant. Provide concise, friendly advice about destinations, itineraries, and travel tips.',
+            },
+            ...messages.map((msg) => ({
+              role: msg.sender === 'user' ? 'user' : 'assistant',
+              content: msg.text,
+            })),
+            {
+              role: 'user',
+              content: newMessage.text,
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from ChatGPT');
+      }
+
+      const data = await response.json();
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'I\'m analyzing your destination request. Full features will be available soon!',
+        text: data.choices[0].message.content,
         sender: 'ai',
         timestamp: new Date(),
       };
+
       setMessages((prev) => [...prev, aiResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error('Error calling ChatGPT:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get AI response. Please check your API key and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -76,7 +138,7 @@ const ChatBox = () => {
         {/* Messages */}
         {isExpanded && (
           <>
-            <ScrollArea className="h-80 p-4">
+            <ScrollArea className="h-80 p-4" ref={scrollRef}>
               <div className="space-y-4">
                 {messages.map((message) => (
                   <div
@@ -117,6 +179,7 @@ const ChatBox = () => {
                   type="submit"
                   size="icon"
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  disabled={isLoading}
                 >
                   <Send className="h-4 w-4" />
                 </Button>
