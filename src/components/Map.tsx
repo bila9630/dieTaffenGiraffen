@@ -7,10 +7,11 @@ import type { Destination } from '@/lib/austrianDestinations';
 
 interface MapProps {
   destinations?: Destination[];
+  newDestinations?: Destination[];
   triggerFlyover?: boolean;
 }
 
-const Map = ({ destinations = [], triggerFlyover = false }: MapProps) => {
+const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapboxToken, setMapboxToken] = useState('');
@@ -327,15 +328,15 @@ const Map = ({ destinations = [], triggerFlyover = false }: MapProps) => {
     }
   }, [destinations]);
 
-  // Cinematic flyover animation
+  // Cinematic flyover animation for NEW destinations only
   useEffect(() => {
-    if (!map.current || !triggerFlyover || destinations.length === 0) return;
+    if (!map.current || !triggerFlyover || newDestinations.length === 0) return;
 
     let currentIndex = 0;
     const flyoverInterval = setInterval(() => {
-      if (currentIndex >= destinations.length) {
+      if (currentIndex >= newDestinations.length) {
         clearInterval(flyoverInterval);
-        // After flyover, show all destinations
+        // After flyover, show all destinations (including old and new)
         if (map.current && destinations.length > 1) {
           const bounds = new mapboxgl.LngLatBounds();
           destinations.forEach(dest => bounds.extend(dest.coordinates));
@@ -350,7 +351,7 @@ const Map = ({ destinations = [], triggerFlyover = false }: MapProps) => {
         return;
       }
 
-      const destination = destinations[currentIndex];
+      const destination = newDestinations[currentIndex];
       
       // Cinematic drone-like movement
       map.current?.flyTo({
@@ -378,7 +379,7 @@ const Map = ({ destinations = [], triggerFlyover = false }: MapProps) => {
     }, 4000);
 
     return () => clearInterval(flyoverInterval);
-  }, [triggerFlyover, destinations]);
+  }, [triggerFlyover, newDestinations, destinations]);
 
   if (!savedToken) {
     return (

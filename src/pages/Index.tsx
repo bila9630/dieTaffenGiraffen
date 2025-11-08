@@ -6,16 +6,19 @@ import type { Destination } from '@/lib/austrianDestinations';
 
 const Index = () => {
   const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [newDestinations, setNewDestinations] = useState<Destination[]>([]);
   const [triggerFlyover, setTriggerFlyover] = useState(false);
 
-  const handleDestinationsFound = (newDestinations: Destination[]) => {
+  const handleDestinationsFound = (foundDestinations: Destination[]) => {
     // Merge with existing destinations, avoiding duplicates
     setDestinations(prev => {
       const existingNames = new Set(prev.map(d => d.name));
-      const uniqueNew = newDestinations.filter(d => !existingNames.has(d.name));
+      const uniqueNew = foundDestinations.filter(d => !existingNames.has(d.name));
       
       if (uniqueNew.length > 0) {
-        // Trigger flyover for new destinations
+        // Set the new destinations for flyover
+        setNewDestinations(uniqueNew);
+        // Trigger flyover for new destinations only
         setTriggerFlyover(false);
         setTimeout(() => setTriggerFlyover(true), 100);
         return [...prev, ...uniqueNew];
@@ -27,7 +30,7 @@ const Index = () => {
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
-      <Map destinations={destinations} triggerFlyover={triggerFlyover} />
+      <Map destinations={destinations} newDestinations={newDestinations} triggerFlyover={triggerFlyover} />
       <Navigation />
       <ChatBox onDestinationsFound={handleDestinationsFound} />
     </div>
