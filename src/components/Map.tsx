@@ -7,9 +7,10 @@ import type { Destination } from '@/lib/austrianDestinations';
 
 interface MapProps {
   destinations?: Destination[];
+  triggerFlyover?: boolean;
 }
 
-const Map = ({ destinations = [] }: MapProps) => {
+const Map = ({ destinations = [], triggerFlyover = false }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
@@ -241,6 +242,51 @@ const Map = ({ destinations = [] }: MapProps) => {
       });
     }
   }, [destinations]);
+
+  // Cinematic flyover animation
+  useEffect(() => {
+    if (!map.current || !triggerFlyover || destinations.length === 0) return;
+
+    let currentIndex = 0;
+    const flyoverInterval = setInterval(() => {
+      if (currentIndex >= destinations.length) {
+        clearInterval(flyoverInterval);
+        // After flyover, show all destinations
+        if (map.current && destinations.length > 1) {
+          const bounds = new mapboxgl.LngLatBounds();
+          destinations.forEach(dest => bounds.extend(dest.coordinates));
+          
+          map.current.fitBounds(bounds, {
+            padding: { top: 120, bottom: 120, left: 120, right: 120 },
+            maxZoom: 9,
+            duration: 2500,
+            pitch: 45
+          });
+        }
+        return;
+      }
+
+      const destination = destinations[currentIndex];
+      
+      // Cinematic drone-like movement
+      map.current?.flyTo({
+        center: destination.coordinates,
+        zoom: 12 + Math.random() * 1.5, // Varying zoom for dynamism
+        pitch: 50 + Math.random() * 15, // Tilt camera angle
+        bearing: Math.random() * 60 - 30, // Slight rotation
+        duration: 3500,
+        essential: true,
+        curve: 1.2, // Smoother curve
+      });
+
+      // Show popup during flyover
+      markers.current[currentIndex]?.togglePopup();
+      
+      currentIndex++;
+    }, 4000); // 4 seconds per destination
+
+    return () => clearInterval(flyoverInterval);
+  }, [triggerFlyover, destinations]);
 
   if (!savedToken) {
     return (
