@@ -106,6 +106,12 @@ const Map = () => {
           'high-color': 'rgb(135, 206, 250)',
           'horizon-blend': 0.2,
         });
+
+        // Make country borders more visible
+        map.current?.setPaintProperty('admin-0-boundary', 'line-color', '#2d3748');
+        map.current?.setPaintProperty('admin-0-boundary', 'line-width', 2.5);
+        map.current?.setPaintProperty('admin-0-boundary-disputed', 'line-color', '#2d3748');
+        map.current?.setPaintProperty('admin-0-boundary-disputed', 'line-width', 2.5);
       });
     } catch (error) {
       console.error('Map initialization error:', error);
