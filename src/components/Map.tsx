@@ -300,7 +300,7 @@ const Map = ({ destinations = [], triggerFlyover = false }: MapProps) => {
 
         new mapboxgl.Popup({ className: 'destination-popup' })
           .setLngLat(coordinates)
-          .setHTML(`<div style="padding: 4px 8px; font-weight: 600; color: #0ea5e9; font-size: 12px; background: transparent;">${name}</div>`)
+          .setHTML(`<div style="padding: 6px 10px; font-weight: 600; color: #0ea5e9; font-size: 16px; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); border-radius: 6px;">${name}</div>`)
           .addTo(mapInstance);
       });
 
@@ -368,7 +368,7 @@ const Map = ({ destinations = [], triggerFlyover = false }: MapProps) => {
         if (map.current) {
           new mapboxgl.Popup({ closeButton: false, className: 'destination-popup' })
             .setLngLat(destination.coordinates)
-            .setHTML(`<div style="padding: 4px 8px; font-weight: 600; color: #0ea5e9; font-size: 12px; background: transparent;">${destination.name}</div>`)
+            .setHTML(`<div style="padding: 6px 10px; font-weight: 600; color: #0ea5e9; font-size: 16px; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); border-radius: 6px;">${destination.name}</div>`)
             .addTo(map.current)
             .on('close', () => {});
         }
