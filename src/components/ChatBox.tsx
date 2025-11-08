@@ -163,19 +163,19 @@ const ChatBox = ({ onDestinationsFound }: ChatBoxProps) => {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border/50 bg-[#c9b89a]/60 p-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20">
-              <MessageCircle className="h-4 w-4 text-primary" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#a8927a]/30">
+              <MessageCircle className="h-4 w-4 text-[#a8927a]" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Travel Assistant</h3>
-              <p className="text-xs text-muted-foreground">Powered by AI</p>
+              <h3 className="text-sm font-semibold text-black">Travel Assistant</h3>
+              <p className="text-xs text-black/70">Powered by AI</p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 p-0 text-black/70 hover:text-black"
           >
             {isExpanded ? '−' : '+'}
           </Button>
@@ -235,8 +235,8 @@ const ChatBox = ({ onDestinationsFound }: ChatBoxProps) => {
                     >
                       <div
                         className={`max-w-[80%] rounded-lg px-4 py-2 ${message.sender === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary text-secondary-foreground'
+                            ? 'bg-[#a8927a] text-white'
+                            : 'bg-[#c9b89a] text-black'
                           }`}
                       >
                         <p className="text-sm">{message.text}</p>

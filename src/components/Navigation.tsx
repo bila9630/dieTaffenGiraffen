@@ -23,7 +23,7 @@ const Navigation = () => {
         <DropdownMenuTrigger asChild>
           <Button
             size="lg"
-            className="h-12 gap-2 rounded-xl border border-glass-border bg-[#d4c4b0]/80 text-foreground backdrop-blur-xl hover:bg-[#d4c4b0]/95"
+            className="h-12 gap-2 rounded-xl border border-glass-border bg-[#d4c4b0]/80 text-black backdrop-blur-xl hover:bg-[#d4c4b0]/95"
           >
             <Menu className="h-5 w-5" />
             <span className="text-sm font-medium">Navigation</span>
@@ -42,7 +42,7 @@ const Navigation = () => {
                 <Link
                   to={item.path}
                   className={`flex items-center gap-2 cursor-pointer ${
-                    isActive ? 'text-primary font-medium' : 'text-foreground'
+                    isActive ? 'text-black font-semibold' : 'text-black/80'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
