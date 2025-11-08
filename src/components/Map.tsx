@@ -22,7 +22,7 @@ const Map = () => {
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
+        style: 'mapbox://styles/mapbox/outdoors-v12',
         projection: { name: 'globe' },
         zoom: 2,
         center: [0, 20],
@@ -102,9 +102,9 @@ const Map = () => {
 
       map.current.on('style.load', () => {
         map.current?.setFog({
-          color: 'rgb(10, 20, 30)',
-          'high-color': 'rgb(20, 30, 50)',
-          'horizon-blend': 0.1,
+          color: 'rgb(186, 210, 235)',
+          'high-color': 'rgb(135, 206, 250)',
+          'horizon-blend': 0.2,
         });
       });
     } catch (error) {
