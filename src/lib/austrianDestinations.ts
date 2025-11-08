@@ -40,12 +40,20 @@ export function extractDestinationsFromText(text: string): Destination[] {
   const found: Destination[] = [];
   const foundNames = new Set<string>();
 
-  Object.entries(AUSTRIAN_DESTINATIONS).forEach(([key, destination]) => {
+  // Sort keys by length (longest first) to match longer names before shorter ones
+  const sortedEntries = Object.entries(AUSTRIAN_DESTINATIONS).sort(
+    ([a], [b]) => b.length - a.length
+  );
+
+  sortedEntries.forEach(([key, destination]) => {
     if (lowerText.includes(key) && !foundNames.has(destination.name)) {
       found.push(destination);
       foundNames.add(destination.name);
     }
   });
+
+  console.log('Text to search:', lowerText);
+  console.log('Found destinations:', found);
 
   return found;
 }

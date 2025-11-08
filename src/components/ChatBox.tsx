@@ -142,7 +142,9 @@ const ChatBox = ({ onDestinationsFound }: ChatBoxProps) => {
 
       // Extract destinations from AI response
       const foundDestinations = extractDestinationsFromText(completion);
+      console.log('ChatBox - Found destinations:', foundDestinations);
       if (foundDestinations.length > 0 && onDestinationsFound) {
+        console.log('ChatBox - Calling onDestinationsFound with:', foundDestinations);
         onDestinationsFound(foundDestinations);
       }
     } catch (error) {

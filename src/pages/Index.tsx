@@ -10,14 +10,18 @@ const Index = () => {
   const [triggerFlyover, setTriggerFlyover] = useState(false);
 
   const handleDestinationsFound = (foundDestinations: Destination[]) => {
+    console.log('Index - Received destinations:', foundDestinations);
     // Merge with existing destinations, avoiding duplicates
     setDestinations(prev => {
+      console.log('Index - Previous destinations:', prev);
       const existingNames = new Set(prev.map(d => d.name));
       const uniqueNew = foundDestinations.filter(d => !existingNames.has(d.name));
+      console.log('Index - Unique new destinations:', uniqueNew);
       
       if (uniqueNew.length > 0) {
         // Set the new destinations for flyover
         setNewDestinations(uniqueNew);
+        console.log('Index - Setting newDestinations for flyover:', uniqueNew);
         // Trigger flyover for new destinations only
         setTriggerFlyover(false);
         setTimeout(() => setTriggerFlyover(true), 100);
