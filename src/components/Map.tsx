@@ -24,8 +24,8 @@ const Map = () => {
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/outdoors-v12',
         projection: { name: 'globe' },
-        zoom: 2,
-        center: [0, 20],
+        zoom: 6.5,
+        center: [13.5, 47.5],
         pitch: 0,
       });
 
