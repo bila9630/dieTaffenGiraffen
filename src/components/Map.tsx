@@ -7,10 +7,10 @@ import { toast } from 'sonner';
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const envToken = import.meta.env.VITE_MAPBOX_KEY || '';
-  const storedToken = envToken || localStorage.getItem('mapbox_token') || '';
   const [mapboxToken, setMapboxToken] = useState('');
-  const [tokenSubmitted, setTokenSubmitted] = useState(!!storedToken);
+  const [savedToken, setSavedToken] = useState<string>(() => {
+    return import.meta.env.VITE_MAPBOX_KEY || localStorage.getItem('mapbox_token') || '';
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const initializeMap = (token: string) => {
@@ -111,38 +111,36 @@ const Map = () => {
       console.error('Map initialization error:', error);
       toast.error('Failed to initialize map. Please check your token.');
       setIsLoading(false);
-      setTokenSubmitted(false);
+      setSavedToken('');
+      localStorage.removeItem('mapbox_token');
     }
   };
 
   const handleTokenSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mapboxToken.trim()) {
-      localStorage.setItem('mapbox_token', mapboxToken.trim());
-      setTokenSubmitted(true);
-      // Delay initialization to ensure DOM is ready
-      setTimeout(() => {
-        initializeMap(mapboxToken);
-      }, 100);
+      const token = mapboxToken.trim();
+      localStorage.setItem('mapbox_token', token);
+      setSavedToken(token);
+      toast.success('Token saved successfully');
     } else {
       toast.error('Please enter a valid Mapbox token');
     }
   };
 
   useEffect(() => {
-    // Initialize map with stored token (env or localStorage) if available
-    if (storedToken && tokenSubmitted) {
+    if (savedToken) {
       setTimeout(() => {
-        initializeMap(storedToken);
+        initializeMap(savedToken);
       }, 100);
     }
 
     return () => {
       map.current?.remove();
     };
-  }, [storedToken, tokenSubmitted]);
+  }, [savedToken]);
 
-  if (!tokenSubmitted) {
+  if (!savedToken) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-background">
         <div className="w-full max-w-md space-y-4 p-6">
