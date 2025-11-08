@@ -47,6 +47,9 @@ const Map = ({ destinations = [], newDestinations = [], triggerFlyover = false }
         zoom: 6.5,
         center: [13.5, 47.5],
         pitch: 0,
+        scrollZoom: true, // Enable scroll zoom
+        doubleClickZoom: true, // Enable double-click zoom
+        touchZoomRotate: true, // Enable touch zoom
       });
 
       // Rotation settings
