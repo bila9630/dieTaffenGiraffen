@@ -9,43 +9,65 @@ const Map = () => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapboxToken, setMapboxToken] = useState('');
   const [tokenSubmitted, setTokenSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const initializeMap = (token: string) => {
     if (!mapContainer.current) return;
 
-    mapboxgl.accessToken = token;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      projection: { name: 'globe' },
-      zoom: 2,
-      center: [0, 20],
-      pitch: 0,
-    });
-
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-      }),
-      'top-right'
-    );
-
-    map.current.on('style.load', () => {
-      map.current?.setFog({
-        color: 'rgb(10, 20, 30)',
-        'high-color': 'rgb(20, 30, 50)',
-        'horizon-blend': 0.1,
+    try {
+      setIsLoading(true);
+      mapboxgl.accessToken = token;
+      
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        projection: { name: 'globe' },
+        zoom: 2,
+        center: [0, 20],
+        pitch: 0,
       });
-    });
+
+      map.current.on('load', () => {
+        setIsLoading(false);
+        console.log('Map loaded successfully');
+      });
+
+      map.current.on('error', (e) => {
+        console.error('Mapbox error:', e);
+        toast.error('Failed to load map. Please check your token.');
+        setIsLoading(false);
+      });
+
+      map.current.addControl(
+        new mapboxgl.NavigationControl({
+          visualizePitch: true,
+        }),
+        'top-right'
+      );
+
+      map.current.on('style.load', () => {
+        map.current?.setFog({
+          color: 'rgb(10, 20, 30)',
+          'high-color': 'rgb(20, 30, 50)',
+          'horizon-blend': 0.1,
+        });
+      });
+    } catch (error) {
+      console.error('Map initialization error:', error);
+      toast.error('Failed to initialize map. Please check your token.');
+      setIsLoading(false);
+      setTokenSubmitted(false);
+    }
   };
 
   const handleTokenSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mapboxToken.trim()) {
-      initializeMap(mapboxToken);
       setTokenSubmitted(true);
-      toast.success('Map initialized! Start exploring.');
+      // Delay initialization to ensure DOM is ready
+      setTimeout(() => {
+        initializeMap(mapboxToken);
+      }, 100);
     } else {
       toast.error('Please enter a valid Mapbox token');
     }
@@ -96,8 +118,16 @@ const Map = () => {
   }
 
   return (
-    <div className="absolute inset-0">
-      <div ref={mapContainer} className="absolute inset-0" />
+    <div className="absolute inset-0 w-full h-full">
+      {isLoading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background">
+          <div className="text-center">
+            <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
+            <p className="text-foreground">Loading map...</p>
+          </div>
+        </div>
+      )}
+      <div ref={mapContainer} className="w-full h-full" />
     </div>
   );
 };
