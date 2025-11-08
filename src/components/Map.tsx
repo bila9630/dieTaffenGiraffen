@@ -7,8 +7,10 @@ import { toast } from 'sonner';
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const envToken = import.meta.env.VITE_MAPBOX_KEY || '';
+  const storedToken = envToken || localStorage.getItem('mapbox_token') || '';
   const [mapboxToken, setMapboxToken] = useState('');
-  const [tokenSubmitted, setTokenSubmitted] = useState(false);
+  const [tokenSubmitted, setTokenSubmitted] = useState(!!storedToken);
   const [isLoading, setIsLoading] = useState(false);
 
   const initializeMap = (token: string) => {
@@ -17,7 +19,7 @@ const Map = () => {
     try {
       setIsLoading(true);
       mapboxgl.accessToken = token;
-      
+
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/dark-v11',
@@ -37,7 +39,7 @@ const Map = () => {
       // Spin globe function
       function spinGlobe() {
         if (!map.current) return;
-        
+
         const zoom = map.current.getZoom();
         if (spinEnabled && !userInteracting && zoom < maxSpinZoom) {
           let distancePerSecond = 360 / secondsPerRevolution;
@@ -67,21 +69,21 @@ const Map = () => {
       map.current.on('mousedown', () => {
         userInteracting = true;
       });
-      
+
       map.current.on('dragstart', () => {
         userInteracting = true;
       });
-      
+
       map.current.on('mouseup', () => {
         userInteracting = false;
         spinGlobe();
       });
-      
+
       map.current.on('dragend', () => {
         userInteracting = false;
         spinGlobe();
       });
-      
+
       map.current.on('touchend', () => {
         userInteracting = false;
         spinGlobe();
@@ -116,6 +118,7 @@ const Map = () => {
   const handleTokenSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mapboxToken.trim()) {
+      localStorage.setItem('mapbox_token', mapboxToken.trim());
       setTokenSubmitted(true);
       // Delay initialization to ensure DOM is ready
       setTimeout(() => {
@@ -127,10 +130,17 @@ const Map = () => {
   };
 
   useEffect(() => {
+    // Initialize map with stored token (env or localStorage) if available
+    if (storedToken && tokenSubmitted) {
+      setTimeout(() => {
+        initializeMap(storedToken);
+      }, 100);
+    }
+
     return () => {
       map.current?.remove();
     };
-  }, []);
+  }, [storedToken, tokenSubmitted]);
 
   if (!tokenSubmitted) {
     return (
@@ -140,9 +150,9 @@ const Map = () => {
             <h2 className="text-2xl font-bold text-foreground">Welcome to Travel Planner</h2>
             <p className="text-sm text-muted-foreground">
               Enter your Mapbox public token to get started. Get one at{' '}
-              <a 
-                href="https://mapbox.com/" 
-                target="_blank" 
+              <a
+                href="https://mapbox.com/"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >

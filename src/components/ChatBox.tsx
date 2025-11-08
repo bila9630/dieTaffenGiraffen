@@ -25,8 +25,9 @@ const ChatBox = () => {
   const [inputValue, setInputValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const envApiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
   const [apiKey, setApiKey] = useState<string>(() => {
-    return localStorage.getItem('openai_api_key') || '';
+    return envApiKey || localStorage.getItem('openai_api_key') || '';
   });
   const [tempApiKey, setTempApiKey] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -41,7 +42,7 @@ const ChatBox = () => {
   const handleSaveApiKey = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedKey = tempApiKey.trim();
-    
+
     if (!trimmedKey) {
       toast({
         title: "Invalid API Key",
@@ -215,28 +216,27 @@ const ChatBox = () => {
             ) : (
               <ScrollArea className="h-80 p-4" ref={scrollRef}>
                 <div className="space-y-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
+                  {messages.map((message) => (
                     <div
-                      className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                        message.sender === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary text-secondary-foreground'
-                      }`}
+                      key={message.id}
+                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <p className="text-sm">{message.text}</p>
-                      <span className="mt-1 block text-xs opacity-70">
-                        {message.timestamp.toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
+                      <div
+                        className={`max-w-[80%] rounded-lg px-4 py-2 ${message.sender === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-secondary-foreground'
+                          }`}
+                      >
+                        <p className="text-sm">{message.text}</p>
+                        <span className="mt-1 block text-xs opacity-70">
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
                 </div>
               </ScrollArea>
             )}
@@ -244,24 +244,24 @@ const ChatBox = () => {
             {/* Input */}
             {apiKey && (
               <form onSubmit={handleSendMessage} className="border-t border-border/50 bg-card/50 p-4">
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  placeholder="Type your destination..."
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  className="flex-1 bg-input/50 backdrop-blur-sm"
-                />
-                <Button
-                  type="submit"
-                  size="icon"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  disabled={isLoading}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </form>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Type your destination..."
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    className="flex-1 bg-input/50 backdrop-blur-sm"
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    disabled={isLoading}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </form>
             )}
           </>
         )}
