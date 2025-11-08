@@ -117,6 +117,22 @@ const Map = () => {
         map.current?.setPaintProperty('admin-1-boundary', 'line-color', '#4a5568');
         map.current?.setPaintProperty('admin-1-boundary', 'line-width', 1.5);
 
+        // Add a layer to mask everything except Austria
+        map.current?.addLayer({
+          id: 'country-mask',
+          type: 'fill',
+          source: {
+            type: 'vector',
+            url: 'mapbox://mapbox.country-boundaries-v1'
+          },
+          'source-layer': 'country_boundaries',
+          filter: ['!=', ['get', 'iso_3166_1'], 'AT'],
+          paint: {
+            'fill-color': '#d4d4d4',
+            'fill-opacity': 0.7
+          }
+        });
+
         // Hide street/road layers
         const layers = map.current?.getStyle().layers;
         layers?.forEach((layer) => {
