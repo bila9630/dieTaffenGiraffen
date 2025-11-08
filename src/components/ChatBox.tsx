@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { extractDestinationsFromText, type Destination } from '@/lib/austrianDestinations';
 
 interface Message {
   id: string;
@@ -13,7 +14,11 @@ interface Message {
   timestamp: Date;
 }
 
-const ChatBox = () => {
+interface ChatBoxProps {
+  onDestinationsFound?: (destinations: Destination[]) => void;
+}
+
+const ChatBox = ({ onDestinationsFound }: ChatBoxProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -125,14 +130,21 @@ const ChatBox = () => {
       }
 
       const data = await response.json();
+      const completion = data.choices[0].message.content;
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.choices[0].message.content,
+        text: completion,
         sender: 'ai',
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, aiResponse]);
+
+      // Extract destinations from AI response
+      const foundDestinations = extractDestinationsFromText(completion);
+      if (foundDestinations.length > 0 && onDestinationsFound) {
+        onDestinationsFound(foundDestinations);
+      }
     } catch (error) {
       console.error('Error calling ChatGPT:', error);
       toast({

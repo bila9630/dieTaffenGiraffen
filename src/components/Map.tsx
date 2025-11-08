@@ -3,10 +3,16 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import type { Destination } from '@/lib/austrianDestinations';
 
-const Map = () => {
+interface MapProps {
+  destinations?: Destination[];
+}
+
+const Map = ({ destinations = [] }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markers = useRef<mapboxgl.Marker[]>([]);
   const [mapboxToken, setMapboxToken] = useState('');
   const [savedToken, setSavedToken] = useState<string>(() => {
     return import.meta.env.VITE_MAPBOX_KEY || localStorage.getItem('mapbox_token') || '';
@@ -177,9 +183,64 @@ const Map = () => {
     }
 
     return () => {
+      markers.current.forEach(marker => marker.remove());
+      markers.current = [];
       map.current?.remove();
     };
   }, [savedToken]);
+
+  // Handle destination markers
+  useEffect(() => {
+    if (!map.current || !destinations.length) return;
+
+    // Clear existing markers
+    markers.current.forEach(marker => marker.remove());
+    markers.current = [];
+
+    // Add new markers for destinations
+    destinations.forEach(destination => {
+      const el = document.createElement('div');
+      el.className = 'destination-marker';
+      el.style.width = '30px';
+      el.style.height = '30px';
+      el.style.borderRadius = '50%';
+      el.style.backgroundColor = '#ef4444';
+      el.style.border = '3px solid white';
+      el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+      el.style.cursor = 'pointer';
+      el.style.transition = 'transform 0.2s';
+
+      el.addEventListener('mouseenter', () => {
+        el.style.transform = 'scale(1.2)';
+      });
+      
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = 'scale(1)';
+      });
+
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat(destination.coordinates)
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`<div style="padding: 4px 8px; font-weight: 600;">${destination.name}</div>`)
+        )
+        .addTo(map.current!);
+
+      markers.current.push(marker);
+    });
+
+    // Fit map to show all markers if there are any
+    if (destinations.length > 0 && map.current) {
+      const bounds = new mapboxgl.LngLatBounds();
+      destinations.forEach(dest => bounds.extend(dest.coordinates));
+      
+      map.current.fitBounds(bounds, {
+        padding: { top: 100, bottom: 100, left: 100, right: 100 },
+        maxZoom: 10,
+        duration: 1000
+      });
+    }
+  }, [destinations]);
 
   if (!savedToken) {
     return (
