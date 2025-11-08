@@ -13,7 +13,6 @@ interface MapProps {
 const Map = ({ destinations = [], triggerFlyover = false }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markers = useRef<mapboxgl.Marker[]>([]);
   const [mapboxToken, setMapboxToken] = useState('');
   const [savedToken, setSavedToken] = useState<string>(() => {
     return import.meta.env.VITE_MAPBOX_KEY || localStorage.getItem('mapbox_token') || '';
@@ -184,58 +183,143 @@ const Map = ({ destinations = [], triggerFlyover = false }: MapProps) => {
     }
 
     return () => {
-      markers.current.forEach(marker => marker.remove());
-      markers.current = [];
       map.current?.remove();
     };
   }, [savedToken]);
 
-  // Handle destination markers
+  // Handle destination highlighting
   useEffect(() => {
-    if (!map.current || !destinations.length) return;
+    if (!map.current || !destinations.length) {
+      // Remove highlight layers if no destinations
+      if (map.current?.getLayer('destination-highlights')) {
+        map.current.removeLayer('destination-highlights');
+      }
+      if (map.current?.getLayer('destination-glow')) {
+        map.current.removeLayer('destination-glow');
+      }
+      if (map.current?.getSource('destinations')) {
+        map.current.removeSource('destinations');
+      }
+      return;
+    }
 
-    // Clear existing markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
+    const mapInstance = map.current;
 
-    // Add new markers for destinations
-    destinations.forEach(destination => {
-      const el = document.createElement('div');
-      el.className = 'destination-marker';
-      el.style.width = '30px';
-      el.style.height = '30px';
-      el.style.borderRadius = '50%';
-      el.style.backgroundColor = '#ef4444';
-      el.style.border = '3px solid white';
-      el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-      el.style.cursor = 'pointer';
-      el.style.transition = 'transform 0.2s';
-
-      el.addEventListener('mouseenter', () => {
-        el.style.transform = 'scale(1.2)';
+    // Wait for map to be loaded
+    if (!mapInstance.isStyleLoaded()) {
+      mapInstance.once('styledata', () => {
+        addDestinationLayers();
       });
-      
-      el.addEventListener('mouseleave', () => {
-        el.style.transform = 'scale(1)';
+    } else {
+      addDestinationLayers();
+    }
+
+    function addDestinationLayers() {
+      if (!mapInstance) return;
+
+      // Remove existing layers and source
+      if (mapInstance.getLayer('destination-highlights')) {
+        mapInstance.removeLayer('destination-highlights');
+      }
+      if (mapInstance.getLayer('destination-glow')) {
+        mapInstance.removeLayer('destination-glow');
+      }
+      if (mapInstance.getSource('destinations')) {
+        mapInstance.removeSource('destinations');
+      }
+
+      // Create GeoJSON data for destinations
+      const geojsonData = {
+        type: 'FeatureCollection' as const,
+        features: destinations.map(dest => ({
+          type: 'Feature' as const,
+          properties: {
+            name: dest.name,
+          },
+          geometry: {
+            type: 'Point' as const,
+            coordinates: dest.coordinates,
+          },
+        })),
+      };
+
+      // Add source
+      mapInstance.addSource('destinations', {
+        type: 'geojson',
+        data: geojsonData,
       });
 
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat(destination.coordinates)
-        .setPopup(
-          new mapboxgl.Popup({ offset: 25 })
-            .setHTML(`<div style="padding: 4px 8px; font-weight: 600;">${destination.name}</div>`)
-        )
-        .addTo(map.current!);
+      // Add outer glow layer (larger, more transparent)
+      mapInstance.addLayer({
+        id: 'destination-glow',
+        type: 'circle',
+        source: 'destinations',
+        paint: {
+          'circle-radius': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            5, 25,
+            10, 50,
+            15, 100
+          ],
+          'circle-color': '#38bdf8', // Bright sky blue
+          'circle-opacity': 0.3,
+          'circle-blur': 1,
+        },
+      });
 
-      markers.current.push(marker);
-    });
+      // Add main highlight layer (smaller, more intense)
+      mapInstance.addLayer({
+        id: 'destination-highlights',
+        type: 'circle',
+        source: 'destinations',
+        paint: {
+          'circle-radius': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            5, 15,
+            10, 30,
+            15, 60
+          ],
+          'circle-color': '#0ea5e9', // Vibrant bright blue
+          'circle-opacity': 0.6,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#7dd3fc', // Light blue stroke
+          'circle-stroke-opacity': 0.8,
+        },
+      });
 
-    // Fit map to show all markers if there are any
-    if (destinations.length > 0 && map.current) {
+      // Add click handler to show destination name
+      mapInstance.on('click', 'destination-highlights', (e) => {
+        if (!e.features?.[0]) return;
+        
+        const coordinates = (e.features[0].geometry as any).coordinates.slice();
+        const name = e.features[0].properties?.name;
+
+        new mapboxgl.Popup()
+          .setLngLat(coordinates)
+          .setHTML(`<div style="padding: 8px 12px; font-weight: 600; color: #0ea5e9;">${name}</div>`)
+          .addTo(mapInstance);
+      });
+
+      // Change cursor on hover
+      mapInstance.on('mouseenter', 'destination-highlights', () => {
+        mapInstance.getCanvas().style.cursor = 'pointer';
+      });
+
+      mapInstance.on('mouseleave', 'destination-highlights', () => {
+        mapInstance.getCanvas().style.cursor = '';
+      });
+    }
+
+    // Fit map to show all highlights if there are any
+    if (destinations.length > 0) {
       const bounds = new mapboxgl.LngLatBounds();
       destinations.forEach(dest => bounds.extend(dest.coordinates));
       
-      map.current.fitBounds(bounds, {
+      mapInstance.fitBounds(bounds, {
         padding: { top: 100, bottom: 100, left: 100, right: 100 },
         maxZoom: 10,
         duration: 1000
@@ -271,19 +355,27 @@ const Map = ({ destinations = [], triggerFlyover = false }: MapProps) => {
       // Cinematic drone-like movement
       map.current?.flyTo({
         center: destination.coordinates,
-        zoom: 12 + Math.random() * 1.5, // Varying zoom for dynamism
-        pitch: 50 + Math.random() * 15, // Tilt camera angle
-        bearing: Math.random() * 60 - 30, // Slight rotation
+        zoom: 12 + Math.random() * 1.5,
+        pitch: 50 + Math.random() * 15,
+        bearing: Math.random() * 60 - 30,
         duration: 3500,
         essential: true,
-        curve: 1.2, // Smoother curve
+        curve: 1.2,
       });
 
       // Show popup during flyover
-      markers.current[currentIndex]?.togglePopup();
+      setTimeout(() => {
+        if (map.current) {
+          new mapboxgl.Popup({ closeButton: false })
+            .setLngLat(destination.coordinates)
+            .setHTML(`<div style="padding: 8px 12px; font-weight: 600; color: #0ea5e9;">${destination.name}</div>`)
+            .addTo(map.current)
+            .on('close', () => {});
+        }
+      }, 1500);
       
       currentIndex++;
-    }, 4000); // 4 seconds per destination
+    }, 4000);
 
     return () => clearInterval(flyoverInterval);
   }, [triggerFlyover, destinations]);
