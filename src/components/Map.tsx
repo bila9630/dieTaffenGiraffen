@@ -7,6 +7,7 @@ import POICards from './POICards';
 import HiddenGemCard from './HiddenGemCard';
 import HikingCard from './HikingCard';
 import TherapyCard from './TherapyCard';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface POIMarker {
   id: number;
@@ -434,19 +435,34 @@ const Map = forwardRef<MapRef>((props, ref) => {
         map.current.removeSource('highlighted-building');
       }
 
-      // Hardcoded hiking route coordinates near Linz (Pöstlingberg area)
-      // This creates an interesting point-to-point hiking route in the countryside
-      const routeCoordinates: [number, number][] = [
-        [14.2400, 48.3450], // Start point (northwest, outside city)
-        [14.2420, 48.3465], // Head north into hills
-        [14.2445, 48.3480], // Climb to ridge
-        [14.2470, 48.3490], // Ridge viewpoint
-        [14.2495, 48.3495], // Continue along ridge
-        [14.2520, 48.3490], // Turn east
-        [14.2540, 48.3480], // Descend gradually
-        [14.2555, 48.3465], // Through forest
-        [14.2565, 48.3450], // End point (northeast, outside city)
-      ];
+      // Fetch hiking route coordinates from the database
+      let routeCoordinates: [number, number][] = [];
+
+      try {
+        const { data, error } = await supabase
+          .from('gpx_data')
+          .select('lat, lon, nr')
+          .eq('id', 51)
+          .order('nr', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching hiking route:', error);
+          toast.error('Failed to load hiking route from database');
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          toast.error('No hiking route data found');
+          return;
+        }
+
+        // Transform data to [lon, lat] format required by Mapbox
+        routeCoordinates = data.map((point: any) => [point.lon, point.lat]);
+      } catch (error) {
+        console.error('Error fetching hiking route:', error);
+        toast.error('Failed to load hiking route');
+        return;
+      }
 
       // Remove existing route layer and source if they exist
       if (map.current.getLayer('hiking-route')) {
@@ -509,7 +525,6 @@ const Map = forwardRef<MapRef>((props, ref) => {
       };
 
       const startEl = createMarkerElement('/start.png', 40, '#22c55e');
-      const endEl = createMarkerElement('/the-end.png', 40, '#ef4444');
 
       // Add markers with custom images
       const startMarker = new mapboxgl.Marker({ element: startEl })
@@ -518,28 +533,25 @@ const Map = forwardRef<MapRef>((props, ref) => {
         .addTo(map.current);
       markers.current.push(startMarker);
 
-      // Add two waypoint markers along the route
-      const waypoint1El = createMarkerElement('/hiking.png', 35, '#3b82f6');
+      // Add two waypoint markers along the route, spread further apart
+      // Place them at approximately 1/3 and 2/3 of the route
+      const routeLength = routeCoordinates.length;
+      const waypoint1Index = Math.floor(routeLength / 3);
+      const waypoint2Index = Math.floor((routeLength * 2) / 3);
 
+      const waypoint1El = createMarkerElement('/hiking.png', 35, '#3b82f6');
       const waypoint1Marker = new mapboxgl.Marker({ element: waypoint1El })
-        .setLngLat(routeCoordinates[3])
+        .setLngLat(routeCoordinates[waypoint1Index])
         .setPopup(new mapboxgl.Popup().setHTML('<strong>Scenic Viewpoint</strong>'))
         .addTo(map.current);
       markers.current.push(waypoint1Marker);
 
       const waypoint2El = createMarkerElement('/hiking.png', 35, '#3b82f6');
-
       const waypoint2Marker = new mapboxgl.Marker({ element: waypoint2El })
-        .setLngLat(routeCoordinates[6])
+        .setLngLat(routeCoordinates[waypoint2Index])
         .setPopup(new mapboxgl.Popup().setHTML('<strong>Rest Stop</strong>'))
         .addTo(map.current);
       markers.current.push(waypoint2Marker);
-
-      const endMarker = new mapboxgl.Marker({ element: endEl })
-        .setLngLat(routeCoordinates[routeCoordinates.length - 1])
-        .setPopup(new mapboxgl.Popup().setHTML('<strong>End</strong>'))
-        .addTo(map.current);
-      markers.current.push(endMarker);
 
       // Fit map to show the entire route
       const bounds = new mapboxgl.LngLatBounds();
