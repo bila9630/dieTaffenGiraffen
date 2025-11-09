@@ -34,7 +34,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem }: Cha
   const [isExpanded, setIsExpanded] = useState(true);
   const [apiKey, setApiKey] = useState<string>(() => getOpenAIKey());
   const [tempApiKey, setTempApiKey] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { check_visitor_capacity } = useBoxVisibility();
   const { sendMessage, isLoading } = useOpenAI({
@@ -45,10 +45,8 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem }: Cha
   });
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
 
   const handleSaveApiKey = (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,7 +169,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem }: Cha
                 </Card>
               </div>
             ) : (
-              <ScrollArea className="h-60 p-4" ref={scrollRef}>
+              <ScrollArea className="h-60 p-4">
                 <div className="space-y-4">
                   {messages.map((message) => (
                     <div
@@ -211,6 +209,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem }: Cha
                       </div>
                     </div>
                   )}
+                  <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
             )}

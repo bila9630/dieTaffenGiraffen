@@ -22,7 +22,7 @@ const InfoBox = () => {
     dailyData.reduce((sum, item) => sum + item.capacity, 0) / dailyData.length
   );
   const recommendedTime = "3pm - 6pm";
-  const peakTime = "12am - 1pm";
+  const peakTime = "9am - 1pm";
 
   return (
     <Card className="w-72 border-glass-border bg-card/70 backdrop-blur-xl">
