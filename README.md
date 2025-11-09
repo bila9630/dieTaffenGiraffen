@@ -1,4 +1,4 @@
-<img width="1918" height="977" alt="image" src="https://github.com/user-attachments/assets/3e4b3509-b70a-4b67-862c-c336d0f3c67e" /># TripTune: The Psycho-Logical Travel AI
+# TripTune: The Psycho-Logical Travel AI
 
 **TripTune** is an AI-powered travel tuner that re-frames "busyness" into "preference." It's a "Map + Chat" interface designed to solve the overtourism paradox, guiding users to more sustainable and satisfying experiences by transforming raw data into psychological context.
 
