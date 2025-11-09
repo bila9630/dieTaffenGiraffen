@@ -11,6 +11,14 @@ export interface BoxExpansionSettings {
   weatherBoxExpanded: boolean;
 }
 
+export type IntentCategory = 'activity' | 'planning' | 'discovery' | 'safety';
+
+export interface Intent {
+  text: string;
+  category: IntentCategory;
+  confidence: number; // 0-100
+}
+
 interface BoxVisibilityContextType {
   settings: BoxVisibilitySettings;
   updateSetting: (key: keyof BoxVisibilitySettings, value: boolean) => void;
@@ -19,6 +27,10 @@ interface BoxVisibilityContextType {
   check_visitor_capacity: () => void;
   hiking_route_linz: () => void;
   hikingWeatherSuccess: boolean;
+  activeIntents: Intent[];
+  showIntents: (intents: Intent[]) => void;
+  addIntent: (intent: Intent) => void;
+  clearIntents: () => void;
 }
 
 const STORAGE_KEY = 'box_visibility_settings';
@@ -57,6 +69,7 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
 
   const [expansionSettings, setExpansionSettings] = useState<BoxExpansionSettings>(DEFAULT_EXPANSION);
   const [hikingWeatherSuccess, setHikingWeatherSuccess] = useState(false);
+  const [activeIntents, setActiveIntents] = useState<Intent[]>([]);
 
   useEffect(() => {
     try {
@@ -114,6 +127,18 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
     }, 4000);
   };
 
+  const showIntents = (intents: Intent[]) => {
+    setActiveIntents(intents);
+  };
+
+  const addIntent = (intent: Intent) => {
+    setActiveIntents((prev) => [...prev, intent]);
+  };
+
+  const clearIntents = () => {
+    setActiveIntents([]);
+  };
+
   return (
     <BoxVisibilityContext.Provider
       value={{
@@ -123,7 +148,11 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
         updateExpansion,
         check_visitor_capacity,
         hiking_route_linz,
-        hikingWeatherSuccess
+        hikingWeatherSuccess,
+        activeIntents,
+        showIntents,
+        addIntent,
+        clearIntents
       }}
     >
       {children}

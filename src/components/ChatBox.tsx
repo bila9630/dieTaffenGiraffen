@@ -38,20 +38,48 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
   const [tempApiKey, setTempApiKey] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { check_visitor_capacity, hiking_route_linz } = useBoxVisibility();
-  const { sendMessage, isLoading, hikingLoadingStep } = useOpenAI({
+  const { check_visitor_capacity, hiking_route_linz, showIntents, addIntent, clearIntents } = useBoxVisibility();
+  const { sendMessage, isLoading, loadingStep, loadingFunction } = useOpenAI({
     onZoomToLocation,
     onDisplayMarkers,
     onDisplayHiddenGem,
     onCheckVisitorCapacity: check_visitor_capacity,
     onDisplayHikingRoute,
     onHikingRouteLinz: hiking_route_linz,
-    onCloseHiddenGem
+    onCloseHiddenGem,
+    onShowIntents: showIntents,
+    onAddIntent: addIntent,
+    onClearIntents: clearIntents
   });
+
+  const getLoadingSteps = (functionName: string): string[] => {
+    switch (functionName) {
+      case 'hiking_route_linz':
+        return ['search hiking trip', 'check weather', 'display result'];
+      case 'top_5_linz_attractions':
+      case 'hidden_gem_linz':
+        return ['search attractions', 'check rating', 'display result'];
+      default:
+        return [];
+    }
+  };
+
+  const getLoadingTitle = (functionName: string): string => {
+    switch (functionName) {
+      case 'hiking_route_linz':
+        return 'hiking linz';
+      case 'top_5_linz_attractions':
+        return 'top attractions';
+      case 'hidden_gem_linz':
+        return 'hidden gem';
+      default:
+        return '';
+    }
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading, hikingLoadingStep]);
+  }, [messages, isLoading, loadingStep]);
 
   const handleSaveApiKey = (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,22 +225,22 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
                       </div>
                     </div>
                   ))}
-                  {hikingLoadingStep >= 0 && (
+                  {loadingStep >= 0 && loadingFunction && (
                     <div className="flex justify-start">
                       <div className="max-w-[80%] rounded-lg bg-secondary px-4 py-3 text-secondary-foreground">
-                        <div className="mb-2 text-sm font-semibold">hiking linz</div>
+                        <div className="mb-2 text-sm font-semibold">{getLoadingTitle(loadingFunction)}</div>
                         <div className="space-y-2">
-                          {['search hiking trip', 'check weather', 'display result'].map((step, index) => (
+                          {getLoadingSteps(loadingFunction).map((step, index) => (
                             <div key={index} className="flex items-center gap-2">
-                              {index < hikingLoadingStep ? (
+                              {index < loadingStep ? (
                                 <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                              ) : index === hikingLoadingStep ? (
+                              ) : index === loadingStep ? (
                                 <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
                               ) : (
                                 <div className="h-4 w-4 rounded-full border-2 border-muted flex-shrink-0" />
                               )}
-                              <span className={`text-xs ${index <= hikingLoadingStep ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                {index === 1 && hikingLoadingStep > 1 ? `${step} ✓ Perfect conditions!` : step}
+                              <span className={`text-xs ${index <= loadingStep ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                {index === 1 && loadingStep > 1 && loadingFunction === 'hiking_route_linz' ? `${step} ✓ Perfect conditions!` : step}
                               </span>
                             </div>
                           ))}
@@ -220,7 +248,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
                       </div>
                     </div>
                   )}
-                  {isLoading && hikingLoadingStep < 0 && (
+                  {isLoading && loadingStep < 0 && !loadingFunction && (
                     <div className="flex justify-start">
                       <div className="max-w-[80%] rounded-lg bg-secondary px-4 py-2 text-secondary-foreground">
                         <div className="flex gap-1">

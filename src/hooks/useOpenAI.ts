@@ -21,6 +21,8 @@ export interface POIMarker {
   description?: string;
 }
 
+import { Intent } from '@/contexts/BoxVisibilityContext';
+
 interface UseOpenAIOptions {
   onZoomToLocation?: (location: string) => Promise<void>;
   onDisplayMarkers?: (markers: POIMarker[]) => Promise<void>;
@@ -29,6 +31,9 @@ interface UseOpenAIOptions {
   onDisplayHikingRoute?: () => Promise<void>;
   onHikingRouteLinz?: () => void;
   onCloseHiddenGem?: () => void;
+  onShowIntents?: (intents: Intent[]) => void;
+  onAddIntent?: (intent: Intent) => void;
+  onClearIntents?: () => void;
 }
 
 /**
@@ -52,9 +57,10 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz, onCloseHiddenGem }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz, onCloseHiddenGem, onShowIntents, onAddIntent, onClearIntents }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [hikingLoadingStep, setHikingLoadingStep] = useState<number>(-1);
+  const [loadingStep, setLoadingStep] = useState<number>(-1);
+  const [loadingFunction, setLoadingFunction] = useState<string>('');
   const { toast } = useToast();
 
   const sendMessage = async (
@@ -167,6 +173,22 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
             const args = JSON.parse(toolCall.function.arguments);
             await onZoomToLocation?.(args.location);
           } else if (toolCall.type === 'function' && toolCall.function?.name === 'top_5_linz_attractions') {
+            // Show intents
+            onShowIntents?.([
+              { text: 'Exploration', category: 'activity', confidence: 92 },
+              { text: 'Tourism', category: 'activity', confidence: 88 }
+            ]);
+
+            setLoadingFunction('top_5_linz_attractions');
+            setLoadingStep(0); // Step 1: search attractions
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            setLoadingStep(1); // Step 2: check rating
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            setLoadingStep(2); // Step 3: display result
+            await new Promise(resolve => setTimeout(resolve, 500));
+
             // Fetch top 5 POIs from Supabase
             const { data, error } = await supabase
               .from('pois')
@@ -184,7 +206,27 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
             } else if (data && onDisplayMarkers) {
               await onDisplayMarkers(data);
             }
+
+            setLoadingStep(-1); // Hide loading
+            setLoadingFunction('');
+            onClearIntents?.();
           } else if (toolCall.type === 'function' && toolCall.function?.name === 'hidden_gem_linz') {
+            // Show intents
+            onShowIntents?.([
+              { text: 'Discovery', category: 'discovery', confidence: 95 },
+              { text: 'Local Secrets', category: 'discovery', confidence: 90 }
+            ]);
+
+            setLoadingFunction('hidden_gem_linz');
+            setLoadingStep(0); // Step 1: search attractions
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            setLoadingStep(1); // Step 2: check rating
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            setLoadingStep(2); // Step 3: display result
+            await new Promise(resolve => setTimeout(resolve, 500));
+
             // Fetch hidden gem from Supabase
             const { data, error } = await supabase
               .from('hidden_gem')
@@ -201,28 +243,45 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
               // Use displayHiddenGem to zoom in close and show in 3D
               await onDisplayHiddenGem(data[0]);
             }
+
+            setLoadingStep(-1); // Hide loading
+            setLoadingFunction('');
+            onClearIntents?.();
           } else if (toolCall.type === 'function' && toolCall.function?.name === 'check_visitor_capacity') {
             // Display and expand the InfoBox
             onCheckVisitorCapacity?.();
           } else if (toolCall.type === 'function' && toolCall.function?.name === 'hiking_route_linz') {
+            // Show initial intents
+            onShowIntents?.([
+              { text: 'Hiking', category: 'activity', confidence: 94 },
+              { text: 'Adventurous', category: 'activity', confidence: 89 }
+            ]);
+
             // Display loading steps for hiking route
-            setHikingLoadingStep(0); // Step 1: search hiking trip
+            setLoadingFunction('hiking_route_linz');
+            setLoadingStep(0); // Step 1: search hiking trip
             // Close HiddenGemCard if open
             onCloseHiddenGem?.();
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            setHikingLoadingStep(1); // Step 2: check weather
+            setLoadingStep(1); // Step 2: check weather
             // Show WeatherBox and hide InfoBox when checking weather
             onHikingRouteLinz?.();
+            // Add Weather-Conscious intent during step 2
+            onAddIntent?.({ text: 'Weather-Conscious', category: 'safety', confidence: 91 });
             await new Promise(resolve => setTimeout(resolve, 2000));
 
-            setHikingLoadingStep(2); // Step 3: display result
+            setLoadingStep(2); // Step 3: display result
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            setHikingLoadingStep(-1); // Hide loading
+            setLoadingStep(-1); // Hide loading
+            setLoadingFunction('');
 
             // Display the hiking route on the map
             await onDisplayHikingRoute?.();
+
+            // Clear intents after all steps complete
+            onClearIntents?.();
           }
         }
       }
@@ -252,6 +311,7 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
   return {
     sendMessage,
     isLoading,
-    hikingLoadingStep,
+    loadingStep,
+    loadingFunction,
   };
 };
