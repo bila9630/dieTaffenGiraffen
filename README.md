@@ -1,73 +1,94 @@
-# Welcome to your Lovable project
+# TripTune: The Psycho-Logical Travel AI
 
-## Project info
+**TripTune** is an AI-powered travel tuner that re-frames "busyness" into "preference." It's a "Map + Chat" interface designed to solve the overtourism paradox, guiding users to more sustainable and satisfying experiences by transforming raw data into psychological context.
 
-**URL**: https://lovable.dev/projects/ccfeb345-d60f-4977-aa09-9e4b6773eacb
+[![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-blue?logo=tailwindcss)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-green?logo=supabase)](https://supabase.com/)
+[![Gemini](https://img.shields.io/badge/Gemini-AI-purple?logo=google)](https://ai.google.dev/)
 
-## How can I edit this code?
+![TripTune Interface](https://placehold.co/1200x600/2d3748/e2e8f0?text=TripTune%20App%20Screenshot)
 
-There are several ways of editing your application.
+## 🌟 Hackathon Context
 
-**Use Lovable**
+This project is a submission for the **Tourism Technology Festival 3.0**.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ccfeb345-d60f-4977-aa09-9e4b6773eacb) and start prompting.
+* **Challenge:** Challenge 5 - Sustainable Visitor Flow & Overtourism
+* **Core Data:** Frequency data provided by the **Bernard Group**
 
-Changes made via Lovable will be committed automatically to this repo.
+## ✨ Key Features
 
-**Use your preferred IDE**
+Our interface is built on a "Psycho-Logical" dual-panel design:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 🗺️ The "Rational" Map (The Context)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+* **Interactive POI & Hike Plotting:** Fetches and displays all hikes (with GPX tracks) and Points of Interest (POIs) from the Supabase backend.
+* **Dynamic Selection:** Clicking any hike or POI on the map instantly loads its detailed information and busyness data.
+* **Visual Data Layer:** Uses `react-leaflet` to provide a clean, fast, and familiar map interface for users to ground themselves spatially.
 
-Follow these steps:
+### 💬 The "Psycho-Logical" Chat (The Personality)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+* **Conversational AI:** Powered by the Google Gemini API, the chat acts as a "travel tuner" and guide.
+* **Context-Aware:** The chat is fed real-time data about the user's selected hike, POI, and its associated busyness/weather patterns.
+* **Preference "Tuning":** Instead of just saying "Hallstatt is busy," the AI re-frames it: "Hallstatt is vibrant and social at 2 PM. If you're looking for a quieter, more contemplative experience, I'd recommend going before 9 AM or exploring this nearby 'Hidden Gem'..."
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 📊 The "Busyness-to-Preference" Engine
 
-# Step 3: Install the necessary dependencies.
-npm i
+* **Data-Driven Cards:** Dynamically renders `HikingCard`, `POICard`, and `HiddenGemCard` components based on map selection.
+* **Frequency Charts:** When a POI is selected (like the Hallstatt Marktplatz), the app queries and displays its historical frequency data (from Bernard) in a clean `Recharts` graph.
+* **The "Therapy" Card:** This is the core of our concept. It proactively reframes the raw chart data into a psychological insight, turning a "problem" (busyness) into a "preference."
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+## 💻 Tech Stack & Architecture
 
-**Edit a file directly in GitHub**
+This is the application layer that consumes the data from our [Rational Engine](https://github.com/spheppner/dieTaffenGiraffenDaten).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+* **Frontend:** React, TypeScript, Vite
+* **UI Components:** shadcn/ui
+* **Styling:** Tailwind CSS
+* **Mapping:** React Leaflet
+* **Charts:** Recharts
+* **Backend:** Supabase (PostgreSQL Database)
+* **AI Model:** Google Gemini API
 
-**Use GitHub Codespaces**
+### 🏛️ The "Psycho-Logical" Data Flow
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1.  A backend Python script (the "Rational Engine") provisions the Supabase database, enriching Bernard's frequency data with weather and time context.
+2.  The **TripTune** frontend queries this pre-processed, rational data from Supabase to populate the map and charts.
+3.  When a user chats, the React app provides the Gemini AI with this rich, rational context (e.g., "The user is looking at Hallstatt Marktplatz. It is 2 PM. The busyness is 8/10, and the weather is sunny.").
+4.  The AI uses this context to deliver its "psycho-logical" response, "tuning" the user's preference.
 
-## What technologies are used for this project?
+-> [Supabase DB] -> [React Map/Chart] -> [Gemini AI] -> [React Chat Response]]
 
-This project is built with:
+## 🚀 How to Run Locally
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/bila9630/dieTaffenGiraffen
+    cd dieTaffenGiraffen
+    ```
 
-## How can I deploy this project?
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-Simply open [Lovable](https://lovable.dev/projects/ccfeb345-d60f-4977-aa09-9e4b6773eacb) and click on Share -> Publish.
+3.  **Set up environment variables:**
+    Create a `.env.local` file in the root and add your Supabase and Gemini keys:
+    ```
+    VITE_SUPABASE_URL=YOUR_SUPABASE_URL
+    VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+    VITE_GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+    ```
 
-## Can I connect a custom domain to my Lovable project?
+4.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
 
-Yes, you can!
+## 🙏 Acknowledgments
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+* **Österreich Werbung** for providing the core Challenge 5 data.
+* **Supabase** for the incredible all-in-one backend.
+* **shadcn/ui** for the beautiful and accessible components.
+* **React Leaflet** for making mapping simple.
