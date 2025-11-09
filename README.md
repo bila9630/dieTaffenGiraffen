@@ -1,4 +1,4 @@
-# TripTune: The Psycho-Logical Travel AI
+# TripTune: The Logical Travel AI
 
 **TripTune** is an AI-powered travel tuner that re-frames "busyness" into "preference." It's a "Map + Chat" interface designed to solve the overtourism paradox, guiding users to more sustainable and satisfying experiences by transforming raw data into psychological context.
 
@@ -26,11 +26,11 @@ Our interface is built on a "Psycho-Logical" dual-panel design:
 
 * **Interactive POI & Hike Plotting:** Fetches and displays all hikes (with GPX tracks) and Points of Interest (POIs) from the Supabase backend.
 * **Dynamic Selection:** Clicking any hike or POI on the map instantly loads its detailed information and busyness data.
-* **Visual Data Layer:** Uses `react-leaflet` to provide a clean, fast, and familiar map interface for users to ground themselves spatially.
+* **Visual Data Layer:** Uses MapBox to provide a clean, fast, and familiar map interface for users to ground themselves spatially.
 
 ### 💬 The "Psycho-Logical" Chat (The Personality)
 
-* **Conversational AI:** Powered by the Google Gemini API, the chat acts as a "travel tuner" and guide.
+* **Conversational AI:** Powered by the ChatGPT 4o-mini API, the chat acts as a "travel tuner" and guide.
 * **Context-Aware:** The chat is fed real-time data about the user's selected hike, POI, and its associated busyness/weather patterns.
 * **Preference "Tuning":** Instead of just saying "Hallstatt is busy," the AI re-frames it: "Hallstatt is vibrant and social at 2 PM. If you're looking for a quieter, more contemplative experience, I'd recommend going before 9 AM or exploring this nearby 'Hidden Gem'..."
 
@@ -50,7 +50,7 @@ This is the application layer that consumes the data from our [Rational Engine](
 * **Mapping:** React Leaflet
 * **Charts:** Recharts
 * **Backend:** Supabase (PostgreSQL Database)
-* **AI Model:** Google Gemini API
+* **AI Model:** ChatGPT 4o-mini
 
 ### 🏛️ The "Psycho-Logical" Data Flow
 
@@ -74,15 +74,7 @@ This is the application layer that consumes the data from our [Rational Engine](
     npm install
     ```
 
-3.  **Set up environment variables:**
-    Create a `.env.local` file in the root and add your Supabase and Gemini keys:
-    ```
-    VITE_SUPABASE_URL=YOUR_SUPABASE_URL
-    VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-    VITE_GEMINI_API_KEY=YOUR_GEMINI_API_KEY
-    ```
-
-4.  **Run the development server:**
+3.  **Run the development server:**
     ```bash
     npm run dev
     ```
