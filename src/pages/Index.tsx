@@ -22,6 +22,12 @@ const Index = () => {
     }
   };
 
+  const handleDisplayHiddenGem = async (marker: POIMarker) => {
+    if (mapRef.current) {
+      await mapRef.current.displayHiddenGem(marker);
+    }
+  };
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       <Map ref={mapRef} />
@@ -33,7 +39,11 @@ const Index = () => {
         </div>
       )}
       {settings.chatBox && (
-        <ChatBox onZoomToLocation={handleZoomToLocation} onDisplayMarkers={handleDisplayMarkers} />
+        <ChatBox
+          onZoomToLocation={handleZoomToLocation}
+          onDisplayMarkers={handleDisplayMarkers}
+          onDisplayHiddenGem={handleDisplayHiddenGem}
+        />
       )}
     </div>
   );

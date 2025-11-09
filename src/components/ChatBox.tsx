@@ -17,9 +17,10 @@ interface Message {
 interface ChatBoxProps {
   onZoomToLocation?: (location: string) => Promise<void>;
   onDisplayMarkers?: (markers: POIMarker[]) => Promise<void>;
+  onDisplayHiddenGem?: (marker: POIMarker) => Promise<void>;
 }
 
-const ChatBox = ({ onZoomToLocation, onDisplayMarkers }: ChatBoxProps) => {
+const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem }: ChatBoxProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -34,7 +35,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers }: ChatBoxProps) => {
   const [tempApiKey, setTempApiKey] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { sendMessage, isLoading } = useOpenAI({ onZoomToLocation, onDisplayMarkers });
+  const { sendMessage, isLoading } = useOpenAI({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem });
 
   useEffect(() => {
     if (scrollRef.current) {

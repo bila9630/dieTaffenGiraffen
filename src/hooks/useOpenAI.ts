@@ -25,6 +25,7 @@ interface UseOpenAIOptions {
   onZoomToLocation?: (location: string) => Promise<void>;
   onDisplayMarkers?: (markers: POIMarker[]) => Promise<void>;
   onAddMarkers?: (markers: POIMarker[]) => Promise<void>;
+  onDisplayHiddenGem?: (marker: POIMarker) => Promise<void>;
 }
 
 /**
@@ -48,7 +49,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers, onDisplayHiddenGem }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -170,9 +171,9 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers }: 
                 description: "Failed to fetch hidden gem data.",
                 variant: "destructive",
               });
-            } else if (data && onDisplayMarkers) {
-              // Use displayMarkers to replace existing markers with the hidden gem
-              await onDisplayMarkers(data);
+            } else if (data && data.length > 0 && onDisplayHiddenGem) {
+              // Use displayHiddenGem to zoom in close and show in 3D
+              await onDisplayHiddenGem(data[0]);
             }
           }
         }

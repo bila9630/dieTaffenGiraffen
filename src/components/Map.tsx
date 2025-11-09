@@ -4,6 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import POICards from './POICards';
+import HiddenGemCard from './HiddenGemCard';
 
 export interface POIMarker {
   id: number;
@@ -19,6 +20,7 @@ export interface MapRef {
   flyToLocation: (location: string) => Promise<void>;
   displayMarkers: (markers: POIMarker[]) => Promise<void>;
   addMarkers: (markers: POIMarker[]) => Promise<void>;
+  displayHiddenGem: (marker: POIMarker) => Promise<void>;
 }
 
 const Map = forwardRef<MapRef>((props, ref) => {
@@ -31,6 +33,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [activePOIs, setActivePOIs] = useState<POIMarker[]>([]);
+  const [hiddenGem, setHiddenGem] = useState<POIMarker | null>(null);
 
   const initializeMap = (token: string) => {
     if (!mapContainer.current) return;
@@ -125,6 +128,48 @@ const Map = forwardRef<MapRef>((props, ref) => {
           'high-color': 'rgb(20, 30, 50)',
           'horizon-blend': 0.1,
         });
+
+        // Add 3D building layer
+        const layers = map.current?.getStyle().layers;
+        const labelLayerId = layers?.find(
+          (layer) => layer.type === 'symbol' && layer.layout && 'text-field' in layer.layout
+        )?.id;
+
+        if (!map.current?.getLayer('3d-buildings')) {
+          map.current?.addLayer(
+            {
+              id: '3d-buildings',
+              source: 'composite',
+              'source-layer': 'building',
+              filter: ['==', 'extrude', 'true'],
+              type: 'fill-extrusion',
+              minzoom: 15,
+              paint: {
+                'fill-extrusion-color': '#aaa',
+                'fill-extrusion-height': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  15,
+                  0,
+                  15.05,
+                  ['get', 'height'],
+                ],
+                'fill-extrusion-base': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  15,
+                  0,
+                  15.05,
+                  ['get', 'min_height'],
+                ],
+                'fill-extrusion-opacity': 0.6,
+              },
+            },
+            labelLayerId
+          );
+        }
       });
     } catch (error) {
       console.error('Map initialization error:', error);
@@ -179,6 +224,34 @@ const Map = forwardRef<MapRef>((props, ref) => {
         toast.error('Failed to find location');
       }
     },
+    displayHiddenGem: async (poi: POIMarker) => {
+      if (!map.current) {
+        console.error('Map not initialized');
+        return;
+      }
+
+      // Remove existing markers and POI cards
+      markers.current.forEach(marker => marker.remove());
+      markers.current = [];
+      setActivePOIs([]);
+
+      // Zoom in closer to the building with a tilted pitch for better 3D view
+      map.current.flyTo({
+        center: [poi.lon, poi.lat],
+        zoom: 17.5,
+        pitch: 60,
+        bearing: 0,
+        duration: 3000,
+        essential: true,
+      });
+
+      // Wait for zoom animation to complete before showing the card
+      const onMoveEnd = () => {
+        setHiddenGem(poi);
+        map.current?.off('moveend', onMoveEnd);
+      };
+      map.current.once('moveend', onMoveEnd);
+    },
     displayMarkers: async (poiMarkers: POIMarker[]) => {
       if (!map.current) {
         console.error('Map not initialized');
@@ -189,8 +262,9 @@ const Map = forwardRef<MapRef>((props, ref) => {
       markers.current.forEach(marker => marker.remove());
       markers.current = [];
 
-      // Clear existing cards immediately
+      // Clear existing cards and hidden gem immediately
       setActivePOIs([]);
+      setHiddenGem(null);
 
       // Add simple pin markers
       poiMarkers.forEach(poi => {
@@ -205,7 +279,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
       if (poiMarkers.length > 0) {
         const bounds = new mapboxgl.LngLatBounds();
         poiMarkers.forEach(poi => bounds.extend([poi.lon, poi.lat]));
-        map.current.fitBounds(bounds, { padding: 200, maxZoom: 13, duration: 2000 });
+        map.current.fitBounds(bounds, { padding: 200, maxZoom: 13, duration: 2000, pitch: 0 });
 
         // Wait for zoom animation to complete before showing cards
         const onMoveEnd = () => {
@@ -307,6 +381,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
       )}
       <div ref={mapContainer} className="w-full h-full" />
       {activePOIs.length > 0 && <POICards activePOIs={activePOIs} map={map.current} />}
+      {hiddenGem && <HiddenGemCard poi={hiddenGem} />}
     </div>
   );
 });
