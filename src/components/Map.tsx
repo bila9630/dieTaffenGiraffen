@@ -22,11 +22,14 @@ const Map = forwardRef<MapRef>((props, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
+  const overlayContainer = useRef<HTMLDivElement | null>(null);
+  const svgContainer = useRef<SVGSVGElement | null>(null);
   const [mapboxToken, setMapboxToken] = useState('');
   const [savedToken, setSavedToken] = useState<string>(() => {
     return import.meta.env.VITE_MAPBOX_KEY || localStorage.getItem('mapbox_token') || '';
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [activePOIs, setActivePOIs] = useState<POIMarker[]>([]);
 
   const initializeMap = (token: string) => {
     if (!mapContainer.current) return;
@@ -185,107 +188,13 @@ const Map = forwardRef<MapRef>((props, ref) => {
       markers.current.forEach(marker => marker.remove());
       markers.current = [];
 
-      // Add new markers
+      // Clear existing cards immediately
+      setActivePOIs([]);
+
+      // Add simple pin markers
       poiMarkers.forEach(poi => {
-        // Generate star rating HTML
-        const renderStars = (rating: number) => {
-          const fullStars = Math.floor(rating);
-          const hasHalfStar = rating % 1 >= 0.5;
-          let starsHTML = '';
-
-          for (let i = 0; i < fullStars; i++) {
-            starsHTML += '<span style="color: #fbbf24; font-size: 16px;">★</span>';
-          }
-          if (hasHalfStar) {
-            starsHTML += '<span style="color: #fbbf24; font-size: 16px;">⯨</span>';
-          }
-          const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-          for (let i = 0; i < emptyStars; i++) {
-            starsHTML += '<span style="color: #9ca3af; font-size: 16px;">★</span>';
-          }
-          return starsHTML;
-        };
-
         const marker = new mapboxgl.Marker({ color: '#ef4444' })
           .setLngLat([poi.lon, poi.lat])
-          .setPopup(
-            new mapboxgl.Popup({
-              offset: 25,
-              maxWidth: '300px',
-              className: 'custom-popup'
-            })
-              .setHTML(`
-                <div style="
-                  min-width: 250px;
-                  border-radius: 12px;
-                  overflow: hidden;
-                  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-                  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                ">
-                  ${poi.image_url ? `
-                    <div style="
-                      width: 100%;
-                      height: 160px;
-                      overflow: hidden;
-                      background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4));
-                    ">
-                      <img
-                        src="${poi.image_url}"
-                        alt="${poi.name}"
-                        style="
-                          width: 100%;
-                          height: 100%;
-                          object-fit: cover;
-                          display: block;
-                        "
-                        onerror="this.parentElement.style.display='none'"
-                      />
-                    </div>
-                  ` : ''}
-                  <div style="padding: 16px;">
-                    <h3 style="
-                      font-size: 18px;
-                      font-weight: 700;
-                      margin: 0 0 8px 0;
-                      color: #f1f5f9;
-                      line-height: 1.3;
-                      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                    ">${poi.name}</h3>
-                    ${poi.rating ? `
-                      <div style="
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                        margin-top: 8px;
-                      ">
-                        <div style="display: flex; gap: 2px;">
-                          ${renderStars(poi.rating)}
-                        </div>
-                        <span style="
-                          font-size: 14px;
-                          font-weight: 600;
-                          color: #fbbf24;
-                          text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-                        ">${poi.rating.toFixed(1)}</span>
-                      </div>
-                    ` : ''}
-                    <div style="
-                      margin-top: 12px;
-                      padding-top: 12px;
-                      border-top: 1px solid rgba(148, 163, 184, 0.2);
-                    ">
-                      <p style="
-                        font-size: 12px;
-                        color: #94a3b8;
-                        margin: 0;
-                        font-weight: 500;
-                      ">📍 Top Attraction in Linz</p>
-                    </div>
-                  </div>
-                </div>
-              `)
-          )
           .addTo(map.current!);
 
         markers.current.push(marker);
@@ -295,7 +204,14 @@ const Map = forwardRef<MapRef>((props, ref) => {
       if (poiMarkers.length > 0) {
         const bounds = new mapboxgl.LngLatBounds();
         poiMarkers.forEach(poi => bounds.extend([poi.lon, poi.lat]));
-        map.current.fitBounds(bounds, { padding: 100, maxZoom: 12, duration: 2000 });
+        map.current.fitBounds(bounds, { padding: 200, maxZoom: 13, duration: 2000 });
+
+        // Wait for zoom animation to complete before showing cards
+        const onMoveEnd = () => {
+          setActivePOIs(poiMarkers);
+          map.current?.off('moveend', onMoveEnd);
+        };
+        map.current.once('moveend', onMoveEnd);
       }
     },
   }));
@@ -311,6 +227,156 @@ const Map = forwardRef<MapRef>((props, ref) => {
       map.current?.remove();
     };
   }, [savedToken]);
+
+  // Render POI cards component
+  const POICards = () => {
+    const [cardPositions, setCardPositions] = useState<Array<{ x: number; y: number; poi: POIMarker }>>([]);
+
+    useEffect(() => {
+      if (!map.current || activePOIs.length === 0) return;
+
+      const updatePositions = () => {
+        if (!map.current) return;
+
+        const positions: Array<{ x: number; y: number; poi: POIMarker }> = [];
+
+        // Hard-coded positions for Linz top 5 attractions (optimized for presentation)
+        const linzCardConfigs = [
+          { angle: 40, distance: 200 },  // Card 0: Top-left (mariendom)
+          { angle: -45, distance: 220 },   // Card 1: Top-right (ars electronica)
+          { angle: 0, distance: 180 },     // Card 2: Right (schloss museum)
+          { angle: 90, distance: 120 },    // Card 3: Bottom (botanic garden)
+          { angle: 180, distance: 250 },   // Card 4: Left (Pöstlingbergbahn)
+        ];
+
+        activePOIs.forEach((poi, index) => {
+          // Get screen position of marker
+          const point = map.current!.project([poi.lon, poi.lat]);
+
+          // Use hard-coded config for this card
+          const config = linzCardConfigs[index % linzCardConfigs.length];
+          const angleRad = (config.angle * Math.PI) / 180;
+
+          // Position card away from marker
+          const x = point.x + Math.cos(angleRad) * config.distance;
+          const y = point.y + Math.sin(angleRad) * config.distance;
+
+          positions.push({ x, y, poi });
+        });
+
+        setCardPositions(positions);
+      };
+
+      // Update on map move
+      map.current.on('move', updatePositions);
+      map.current.on('zoom', updatePositions);
+
+      // Initial update
+      setTimeout(updatePositions, 100);
+
+      return () => {
+        map.current?.off('move', updatePositions);
+        map.current?.off('zoom', updatePositions);
+      };
+    }, [activePOIs]);
+
+    const renderStars = (rating: number) => {
+      const fullStars = Math.floor(rating);
+      const hasHalfStar = rating % 1 >= 0.5;
+      const stars = [];
+
+      for (let i = 0; i < fullStars; i++) {
+        stars.push(<span key={`full-${i}`} className="text-yellow-400 text-xs">★</span>);
+      }
+      if (hasHalfStar) {
+        stars.push(<span key="half" className="text-yellow-400 text-xs">⯨</span>);
+      }
+      const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+      for (let i = 0; i < emptyStars; i++) {
+        stars.push(<span key={`empty-${i}`} className="text-gray-400 text-xs">★</span>);
+      }
+      return stars;
+    };
+
+    if (cardPositions.length === 0) return null;
+
+    return (
+      <>
+        {/* SVG Layer for connecting lines */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          style={{ zIndex: 1000 }}
+        >
+          {cardPositions.map((pos, index) => {
+            const markerPoint = map.current!.project([pos.poi.lon, pos.poi.lat]);
+            return (
+              <line
+                key={`line-${pos.poi.id}`}
+                x1={markerPoint.x}
+                y1={markerPoint.y}
+                x2={pos.x}
+                y2={pos.y}
+                stroke="#ef4444"
+                strokeWidth="2"
+                strokeDasharray="4,4"
+                opacity="0.7"
+              />
+            );
+          })}
+        </svg>
+
+        {/* Cards Layer */}
+        {cardPositions.map((pos) => (
+          <div
+            key={`card-${pos.poi.id}`}
+            className="absolute pointer-events-auto"
+            style={{
+              left: `${pos.x}px`,
+              top: `${pos.y}px`,
+              transform: 'translate(-50%, -50%)',
+              zIndex: 1001,
+              width: '200px',
+            }}
+          >
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden shadow-xl border border-slate-700/50 hover:scale-105 transition-transform duration-200">
+              {pos.poi.image_url && (
+                <div className="w-full h-24 overflow-hidden bg-gradient-to-b from-black/10 to-black/40">
+                  <img
+                    src={pos.poi.image_url}
+                    alt={pos.poi.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLElement).parentElement!.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+              <div className="p-2.5">
+                <h3 className="text-sm font-bold text-slate-100 mb-1.5 leading-tight drop-shadow-lg">
+                  {pos.poi.name}
+                </h3>
+                {pos.poi.rating && (
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="flex gap-0.5">
+                      {renderStars(pos.poi.rating)}
+                    </div>
+                    <span className="text-xs font-semibold text-yellow-400 drop-shadow">
+                      {pos.poi.rating.toFixed(1)}
+                    </span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-slate-600/30">
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    📍 Top Attraction in Linz
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </>
+    );
+  };
 
   if (!savedToken) {
     return (
@@ -361,6 +427,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
         </div>
       )}
       <div ref={mapContainer} className="w-full h-full" />
+      {activePOIs.length > 0 && <POICards />}
     </div>
   );
 });
