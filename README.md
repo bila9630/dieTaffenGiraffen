@@ -16,7 +16,7 @@
 This project is a submission for the **Tourism Technology Festival 3.0**.
 
 * **Challenge:** Challenge 5 - Sustainable Visitor Flow & Overtourism
-* **Core Data:** Frequency data provided by the **Bernard Group**
+* **Core Data:** Frequency data provided by the **Österreich Werbung DataHub**
 
 ## ✨ Key Features
 
@@ -28,7 +28,7 @@ Our interface is built on a "Psycho-Logical" dual-panel design:
 * **Dynamic Selection:** Clicking any hike or POI on the map instantly loads its detailed information and busyness data.
 * **Visual Data Layer:** Uses MapBox to provide a clean, fast, and familiar map interface for users to ground themselves spatially.
 
-### 💬 The "Psycho-Logical" Chat (The Personality)
+### 💬 The Chat (The Personality)
 
 * **Conversational AI:** Powered by the ChatGPT 4o-mini API, the chat acts as a "travel tuner" and guide.
 * **Context-Aware:** The chat is fed real-time data about the user's selected hike, POI, and its associated busyness/weather patterns.
@@ -38,8 +38,7 @@ Our interface is built on a "Psycho-Logical" dual-panel design:
 
 * **Data-Driven Cards:** Dynamically renders `HikingCard`, `POICard`, and `HiddenGemCard` components based on map selection.
 * **Frequency Charts:** When a POI is selected (like the Hallstatt Marktplatz), the app queries and displays its historical frequency data (from Bernard) in a clean `Recharts` graph.
-* **The "Therapy" Card:** This is the core of our concept. It proactively reframes the raw chart data into a psychological insight, turning a "problem" (busyness) into a "preference."
-
+* 
 ## 💻 Tech Stack & Architecture
 
 This is the application layer that consumes the data from our [Rational Engine](https://github.com/spheppner/dieTaffenGiraffenDaten).
@@ -84,4 +83,4 @@ This is the application layer that consumes the data from our [Rational Engine](
 * **Österreich Werbung** for providing the core Challenge 5 data.
 * **Supabase** for the incredible all-in-one backend.
 * **shadcn/ui** for the beautiful and accessible components.
-* **React Leaflet** for making mapping simple.
+* **MapBox** for making mapping simple.
