@@ -16,6 +16,7 @@ export interface POIMarker {
 export interface MapRef {
   flyToLocation: (location: string) => Promise<void>;
   displayMarkers: (markers: POIMarker[]) => Promise<void>;
+  addMarkers: (markers: POIMarker[]) => Promise<void>;
 }
 
 const Map = forwardRef<MapRef>((props, ref) => {
@@ -212,6 +213,34 @@ const Map = forwardRef<MapRef>((props, ref) => {
           map.current?.off('moveend', onMoveEnd);
         };
         map.current.once('moveend', onMoveEnd);
+      }
+    },
+    addMarkers: async (poiMarkers: POIMarker[]) => {
+      if (!map.current) {
+        console.error('Map not initialized');
+        return;
+      }
+
+      // Don't remove existing markers - just add new ones
+      // Add simple pin markers
+      poiMarkers.forEach(poi => {
+        const marker = new mapboxgl.Marker({ color: '#ef4444' })
+          .setLngLat([poi.lon, poi.lat])
+          .addTo(map.current!);
+
+        markers.current.push(marker);
+      });
+
+      // Update active POIs to include new markers
+      setActivePOIs(prev => [...prev, ...poiMarkers]);
+
+      // Zoom to show all markers (including existing ones)
+      if (markers.current.length > 0) {
+        const bounds = new mapboxgl.LngLatBounds();
+        // Get all POIs including new ones
+        const allPOIs = [...activePOIs, ...poiMarkers];
+        allPOIs.forEach(poi => bounds.extend([poi.lon, poi.lat]));
+        map.current.fitBounds(bounds, { padding: 200, maxZoom: 13, duration: 2000 });
       }
     },
   }));

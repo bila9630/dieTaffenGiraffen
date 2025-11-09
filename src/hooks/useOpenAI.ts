@@ -23,6 +23,7 @@ export interface POIMarker {
 interface UseOpenAIOptions {
   onZoomToLocation?: (location: string) => Promise<void>;
   onDisplayMarkers?: (markers: POIMarker[]) => Promise<void>;
+  onAddMarkers?: (markers: POIMarker[]) => Promise<void>;
 }
 
 /**
@@ -46,7 +47,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -114,6 +115,17 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers }: UseOpenAIOptio
               },
             },
           },
+          {
+            type: 'function',
+            function: {
+              name: 'hidden_gem_linz',
+              description: 'Fetch and display a hidden gem spot in Linz on the map. This will replace any existing markers with the hidden gem marker.',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
         ],
         tool_choice: 'auto',
       });
@@ -142,6 +154,23 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers }: UseOpenAIOptio
                 variant: "destructive",
               });
             } else if (data && onDisplayMarkers) {
+              await onDisplayMarkers(data);
+            }
+          } else if (toolCall.type === 'function' && toolCall.function?.name === 'hidden_gem_linz') {
+            // Fetch hidden gem from Supabase
+            const { data, error } = await supabase
+              .from('hidden_gem')
+              .select('id, name, lat, lon, rating, image_url');
+
+            if (error) {
+              console.error('Error fetching hidden gem:', error);
+              toast({
+                title: "Error",
+                description: "Failed to fetch hidden gem data.",
+                variant: "destructive",
+              });
+            } else if (data && onDisplayMarkers) {
+              // Use displayMarkers to replace existing markers with the hidden gem
               await onDisplayMarkers(data);
             }
           }
