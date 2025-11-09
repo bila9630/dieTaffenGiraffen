@@ -111,7 +111,7 @@ export const useOpenAIRealtime = (options: UseOpenAIRealtimeOptions = {}) => {
 
         const { data, error } = await supabase
           .from('pois')
-          .select('id, name, lat, lon, rating, image_url')
+          .select('id, name, lat, lon')
           .order('id', { ascending: true })
           .limit(5);
 
@@ -144,12 +144,12 @@ export const useOpenAIRealtime = (options: UseOpenAIRealtimeOptions = {}) => {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         const { data, error } = await supabase
-          .from('hidden_gem')
+          .from('hidden_gem' as any)
           .select('id, name, lat, lon, rating, image_url, description');
 
         if (error) throw error;
         if (data && data.length > 0 && onDisplayHiddenGem) {
-          await onDisplayHiddenGem(data[0]);
+          await onDisplayHiddenGem(data[0] as any);
         }
 
         setLoadingStep(-1);
