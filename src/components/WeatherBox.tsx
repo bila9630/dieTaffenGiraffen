@@ -8,7 +8,7 @@ const WeatherBox = () => {
 
   // Mock weather data for the week
   const weeklyWeather = [
-    { day: "Mon", temp: 22, condition: "sunny" },
+    { day: "Mon", temp: 21, condition: "sunny" },
     { day: "Tue", temp: 20, condition: "cloudy" },
     { day: "Wed", temp: 18, condition: "rainy" },
     { day: "Thu", temp: 21, condition: "sunny" },
@@ -34,52 +34,52 @@ const WeatherBox = () => {
 
   return (
     <Card className="w-72 border-glass-border bg-card/70 backdrop-blur-xl">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Cloud className="h-4 w-4 text-primary" />
-              Weather
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-            >
-              {isExpanded ? '−' : '+'}
-            </Button>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Cloud className="h-4 w-4 text-primary" />
+            Weather
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+          >
+            {isExpanded ? "−" : "+"}
+          </Button>
+        </div>
+      </CardHeader>
+
+      {isExpanded && (
+        <CardContent className="space-y-4">
+          {/* Main Metric */}
+          <div className="space-y-1">
+            <div className="flex items-baseline justify-between">
+              <p className="text-xs text-muted-foreground">Today's Temperature</p>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-foreground">{todayWeather.temp}°C</span>
+              {getWeatherIcon(todayWeather.condition)}
+            </div>
           </div>
-        </CardHeader>
 
-        {isExpanded && (
-          <CardContent className="space-y-4">
-            {/* Main Metric */}
-            <div className="space-y-1">
-              <div className="flex items-baseline justify-between">
-                <p className="text-xs text-muted-foreground">Today's Temperature</p>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-foreground">{todayWeather.temp}°C</span>
-                {getWeatherIcon(todayWeather.condition)}
-              </div>
+          {/* Weekly Weather */}
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">This Week</p>
+            <div className="grid grid-cols-7 gap-1">
+              {weeklyWeather.map((day, index) => (
+                <div key={index} className="flex flex-col items-center gap-1">
+                  <p className="text-[10px] text-muted-foreground">{day.day}</p>
+                  {getWeatherIcon(day.condition)}
+                  <p className="text-xs font-semibold text-foreground">{day.temp}°</p>
+                </div>
+              ))}
             </div>
-
-            {/* Weekly Weather */}
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">This Week</p>
-              <div className="grid grid-cols-7 gap-1">
-                {weeklyWeather.map((day, index) => (
-                  <div key={index} className="flex flex-col items-center gap-1">
-                    <p className="text-[10px] text-muted-foreground">{day.day}</p>
-                    {getWeatherIcon(day.condition)}
-                    <p className="text-xs font-semibold text-foreground">{day.temp}°</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        )}
-      </Card>
+          </div>
+        </CardContent>
+      )}
+    </Card>
   );
 };
 
