@@ -141,17 +141,6 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
           {
             type: 'function',
             function: {
-              name: 'check_visitor_capacity',
-              description: 'Display and expand the visitor capacity information box showing current capacity levels, recommended visit times, and peak hours. Use this when the user asks about crowds, busy times, visitor numbers, capacity, or when to visit.',
-              parameters: {
-                type: 'object',
-                properties: {},
-              },
-            },
-          },
-          {
-            type: 'function',
-            function: {
               name: 'hiking_route_linz',
               description: 'Display a scenic circular hiking route near Linz on the map. Use this when the user asks about hiking, walking routes, trails, or outdoor activities near Linz.',
               parameters: {
@@ -247,9 +236,11 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
             setLoadingStep(-1); // Hide loading
             setLoadingFunction('');
             onClearIntents?.();
-          } else if (toolCall.type === 'function' && toolCall.function?.name === 'check_visitor_capacity') {
-            // Display and expand the InfoBox
-            onCheckVisitorCapacity?.();
+
+            // Wait for zoom animation to complete (3s flyTo), then display InfoBox
+            setTimeout(() => {
+              onCheckVisitorCapacity?.();
+            }, 3000);
           } else if (toolCall.type === 'function' && toolCall.function?.name === 'hiking_route_linz') {
             // Show initial intents
             onShowIntents?.([
