@@ -20,9 +20,10 @@ interface ChatBoxProps {
   onDisplayMarkers?: (markers: POIMarker[]) => Promise<void>;
   onDisplayHiddenGem?: (marker: POIMarker) => Promise<void>;
   onDisplayHikingRoute?: () => Promise<void>;
+  onCloseHiddenGem?: () => void;
 }
 
-const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDisplayHikingRoute }: ChatBoxProps) => {
+const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDisplayHikingRoute, onCloseHiddenGem }: ChatBoxProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -44,7 +45,8 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
     onDisplayHiddenGem,
     onCheckVisitorCapacity: check_visitor_capacity,
     onDisplayHikingRoute,
-    onHikingRouteLinz: hiking_route_linz
+    onHikingRouteLinz: hiking_route_linz,
+    onCloseHiddenGem
   });
 
   useEffect(() => {

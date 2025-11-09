@@ -28,6 +28,7 @@ interface UseOpenAIOptions {
   onCheckVisitorCapacity?: () => void;
   onDisplayHikingRoute?: () => Promise<void>;
   onHikingRouteLinz?: () => void;
+  onCloseHiddenGem?: () => void;
 }
 
 /**
@@ -51,7 +52,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz, onCloseHiddenGem }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [hikingLoadingStep, setHikingLoadingStep] = useState<number>(-1);
   const { toast } = useToast();
@@ -206,6 +207,8 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
           } else if (toolCall.type === 'function' && toolCall.function?.name === 'hiking_route_linz') {
             // Display loading steps for hiking route
             setHikingLoadingStep(0); // Step 1: search hiking trip
+            // Close HiddenGemCard if open
+            onCloseHiddenGem?.();
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             setHikingLoadingStep(1); // Step 2: check weather

@@ -23,6 +23,7 @@ export interface MapRef {
   addMarkers: (markers: POIMarker[]) => Promise<void>;
   displayHiddenGem: (marker: POIMarker) => Promise<void>;
   displayHikingRoute: () => Promise<void>;
+  closeHiddenGem: () => void;
 }
 
 const Map = forwardRef<MapRef>((props, ref) => {
@@ -540,6 +541,9 @@ const Map = forwardRef<MapRef>((props, ref) => {
       // Show the hiking card
       setShowHikingRoute(true);
     },
+    closeHiddenGem: () => {
+      setHiddenGem(null);
+    },
   }));
 
   useEffect(() => {
@@ -611,11 +615,11 @@ const Map = forwardRef<MapRef>((props, ref) => {
             name: 'Pöstlingberg Panorama Trail',
             rating: 4,
             distance: '10.7 km',
-            duration: '3h 25min',
-            elevationUp: '440 m',
-            elevationDown: '440 m',
-            description: 'Moderate hike. Good basic fitness required. Easily accessible trails. No special skills required.',
-            imageUrl: '/hiking.webp',
+            duration: '2h 25min',
+            elevationUp: '740 m',
+            elevationDown: '740 m',
+            description: 'Extreme hike. Good basic fitness required. Easily accessible trails. No special skills required.',
+            imageUrl: '/hiking_trip.jpg',
           }}
         />
       )}

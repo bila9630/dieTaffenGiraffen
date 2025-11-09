@@ -34,6 +34,12 @@ const Index = () => {
     }
   };
 
+  const handleCloseHiddenGem = () => {
+    if (mapRef.current) {
+      mapRef.current.closeHiddenGem();
+    }
+  };
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       <Map ref={mapRef} />
@@ -50,6 +56,7 @@ const Index = () => {
           onDisplayMarkers={handleDisplayMarkers}
           onDisplayHiddenGem={handleDisplayHiddenGem}
           onDisplayHikingRoute={handleDisplayHikingRoute}
+          onCloseHiddenGem={handleCloseHiddenGem}
         />
       )}
     </div>
