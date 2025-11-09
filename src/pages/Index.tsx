@@ -4,11 +4,12 @@ import ChatBox from '@/components/ChatBox';
 import Navigation from '@/components/Navigation';
 import InfoBox from '@/components/InfoBox';
 import WeatherBox from '@/components/WeatherBox';
+import TherapyBanner from '@/components/TherapyBanner';
 import { useBoxVisibility } from '@/hooks/useBoxVisibility';
 
 const Index = () => {
   const mapRef = useRef<MapRef>(null);
-  const { settings } = useBoxVisibility();
+  const { settings, therapyBannerVisible, hideTherapyBanner } = useBoxVisibility();
 
   const handleZoomToLocation = async (location: string) => {
     if (mapRef.current) {
@@ -56,6 +57,7 @@ const Index = () => {
     <div className="relative h-screen w-full overflow-hidden bg-background">
       <Map ref={mapRef} />
       <Navigation />
+      <TherapyBanner isVisible={therapyBannerVisible} onClose={hideTherapyBanner} />
       {(settings.infoBox || settings.weatherBox) && (
         <div className="fixed right-6 top-6 z-50 flex flex-col gap-4">
           {settings.infoBox && <InfoBox />}

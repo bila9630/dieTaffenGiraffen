@@ -22,6 +22,7 @@ interface UseOpenAIRealtimeOptions {
   onShowIntents?: (intents: Intent[]) => void;
   onAddIntent?: (intent: Intent) => void;
   onClearIntents?: () => void;
+  onShowTherapyBanner?: () => void;
 }
 
 /**
@@ -222,6 +223,7 @@ export const useOpenAIRealtime = (options: UseOpenAIRealtimeOptions = {}) => {
         };
 
         await onDisplayTherapy?.(therapyPlace);
+        options.onShowTherapyBanner?.();
         onClearIntents?.();
 
         return { success: true, message: 'Displayed couples therapy center in Linz' };

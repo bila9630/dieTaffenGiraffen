@@ -36,6 +36,7 @@ interface UseOpenAIOptions {
   onShowIntents?: (intents: Intent[]) => void;
   onAddIntent?: (intent: Intent) => void;
   onClearIntents?: () => void;
+  onShowTherapyBanner?: () => void;
 }
 
 /**
@@ -59,7 +60,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz, onCloseHiddenGem, onDisplayTherapy, onCloseTherapy, onShowIntents, onAddIntent, onClearIntents }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz, onCloseHiddenGem, onDisplayTherapy, onCloseTherapy, onShowIntents, onAddIntent, onClearIntents, onShowTherapyBanner }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<number>(-1);
   const [loadingFunction, setLoadingFunction] = useState<string>('');
@@ -321,6 +322,9 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
 
             // Display the therapy place on the map
             await onDisplayTherapy?.(therapyPlace);
+
+            // Show the therapy banner (couples gag)
+            onShowTherapyBanner?.();
 
             // Clear intents after all steps complete
             onClearIntents?.();

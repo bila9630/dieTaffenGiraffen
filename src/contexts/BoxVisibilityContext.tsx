@@ -31,6 +31,9 @@ interface BoxVisibilityContextType {
   showIntents: (intents: Intent[]) => void;
   addIntent: (intent: Intent) => void;
   clearIntents: () => void;
+  therapyBannerVisible: boolean;
+  showTherapyBanner: () => void;
+  hideTherapyBanner: () => void;
 }
 
 const STORAGE_KEY = 'box_visibility_settings';
@@ -70,6 +73,7 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
   const [expansionSettings, setExpansionSettings] = useState<BoxExpansionSettings>(DEFAULT_EXPANSION);
   const [hikingWeatherSuccess, setHikingWeatherSuccess] = useState(false);
   const [activeIntents, setActiveIntents] = useState<Intent[]>([]);
+  const [therapyBannerVisible, setTherapyBannerVisible] = useState(false);
 
   useEffect(() => {
     try {
@@ -139,6 +143,14 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
     setActiveIntents([]);
   };
 
+  const showTherapyBanner = () => {
+    setTherapyBannerVisible(true);
+  };
+
+  const hideTherapyBanner = () => {
+    setTherapyBannerVisible(false);
+  };
+
   return (
     <BoxVisibilityContext.Provider
       value={{
@@ -152,7 +164,10 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
         activeIntents,
         showIntents,
         addIntent,
-        clearIntents
+        clearIntents,
+        therapyBannerVisible,
+        showTherapyBanner,
+        hideTherapyBanner
       }}
     >
       {children}

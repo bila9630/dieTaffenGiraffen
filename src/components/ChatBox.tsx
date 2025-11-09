@@ -49,7 +49,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { check_visitor_capacity, hiking_route_linz, showIntents, addIntent, clearIntents } = useBoxVisibility();
+  const { check_visitor_capacity, hiking_route_linz, showIntents, addIntent, clearIntents, showTherapyBanner } = useBoxVisibility();
   const { sendMessage, isLoading, loadingStep, loadingFunction } = useOpenAI({
     onZoomToLocation,
     onDisplayMarkers,
@@ -62,7 +62,8 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
     onCloseTherapy,
     onShowIntents: showIntents,
     onAddIntent: addIntent,
-    onClearIntents: clearIntents
+    onClearIntents: clearIntents,
+    onShowTherapyBanner: showTherapyBanner
   });
 
   // Voice mode hook
@@ -89,6 +90,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
     onShowIntents: showIntents,
     onAddIntent: addIntent,
     onClearIntents: clearIntents,
+    onShowTherapyBanner: showTherapyBanner
   });
 
   // Presentation mode - get message for each function
