@@ -138,7 +138,7 @@ const VoiceMode = ({
 
             {/* Audio Level Bars */}
             {voiceStatus === 'listening' && (
-              <div className="flex gap-1 mb-3">
+              <div className="flex gap-1 mb-3 h-8 items-end">
                 {Array.from({ length: barCount }).map((_, i) => (
                   <div
                     key={i}
