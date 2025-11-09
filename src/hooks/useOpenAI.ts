@@ -114,17 +114,6 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers }: UseOpenAIOptio
               },
             },
           },
-          {
-            type: 'function',
-            function: {
-              name: 'hidden_spot_linz',
-              description: 'Fetch and display hidden gems in Linz on the map as markers.',
-              parameters: {
-                type: 'object',
-                properties: {},
-              },
-            },
-          },
         ],
         tool_choice: 'auto',
       });
@@ -153,24 +142,7 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers }: UseOpenAIOptio
                 variant: "destructive",
               });
             } else if (data && onDisplayMarkers) {
-              await onDisplayMarkers(data as unknown as POIMarker[]);
-            }
-          } else if (toolCall.type === 'function' && toolCall.function?.name === 'hidden_spot_linz') {
-            // Fetch hidden gems from Supabase
-            const { data, error } = await supabase
-              .from('hidden_gem' as any)
-              .select('id, name, lat, lon')
-              .limit(10);
-
-            if (error) {
-              console.error('Error fetching hidden gems:', error);
-              toast({
-                title: "Error",
-                description: "Failed to fetch hidden spots data.",
-                variant: "destructive",
-              });
-            } else if (data && onDisplayMarkers) {
-              await onDisplayMarkers(data as unknown as POIMarker[]);
+              await onDisplayMarkers(data);
             }
           }
         }
