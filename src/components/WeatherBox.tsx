@@ -13,7 +13,7 @@ const WeatherBox = () => {
     { day: "Wed", temp: 18, condition: "rainy" },
     { day: "Thu", temp: 21, condition: "sunny" },
     { day: "Fri", temp: 23, condition: "sunny" },
-    { day: "Sat", temp: 21, condition: "cloudy" },
+    { day: "Sat", temp: 21, condition: "sunny" },
     { day: "Sun", temp: 22, condition: "sunny" },
   ];
 
@@ -56,10 +56,10 @@ const WeatherBox = () => {
             {/* Main Metric */}
             <div className="space-y-1">
               <div className="flex items-baseline justify-between">
-                <p className="text-xs text-muted-foreground">Today's Temperature</p>
+                <p className="text-xs text-muted-foreground">Saturday's Temperature</p>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-foreground">{todayWeather.temp}°C</span>
+                <span className="text-3xl font-bold text-foreground ">{todayWeather.temp}°C</span>
                 {getWeatherIcon(todayWeather.condition)}
               </div>
             </div>

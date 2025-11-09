@@ -21,6 +21,7 @@ export interface MapRef {
   displayMarkers: (markers: POIMarker[]) => Promise<void>;
   addMarkers: (markers: POIMarker[]) => Promise<void>;
   displayHiddenGem: (marker: POIMarker) => Promise<void>;
+  displayHikingRoute: () => Promise<void>;
 }
 
 const Map = forwardRef<MapRef>((props, ref) => {
@@ -373,6 +374,90 @@ const Map = forwardRef<MapRef>((props, ref) => {
         allPOIs.forEach(poi => bounds.extend([poi.lon, poi.lat]));
         map.current.fitBounds(bounds, { padding: 200, maxZoom: 13, duration: 2000 });
       }
+    },
+    displayHikingRoute: async () => {
+      if (!map.current) {
+        console.error('Map not initialized');
+        return;
+      }
+
+      // Remove existing markers and POI cards
+      markers.current.forEach(marker => marker.remove());
+      markers.current = [];
+      setActivePOIs([]);
+      setHiddenGem(null);
+
+      // Remove highlight layer if it exists
+      if (map.current.getLayer('highlighted-building')) {
+        map.current.removeLayer('highlighted-building');
+      }
+      if (map.current.getSource('highlighted-building')) {
+        map.current.removeSource('highlighted-building');
+      }
+
+      // Hardcoded hiking route coordinates near Linz (Pöstlingberg area)
+      // This creates a circular hiking route
+      const routeCoordinates: [number, number][] = [
+        [14.2654, 48.3250], // Start point
+        [14.2680, 48.3290], // Waypoint 1
+        [14.2750, 48.3310], // Waypoint 2
+        [14.2820, 48.3300], // Waypoint 3
+        [14.2880, 48.3260], // Waypoint 4
+        [14.2900, 48.3210], // Waypoint 5
+        [14.2870, 48.3160], // Waypoint 6
+        [14.2800, 48.3130], // Waypoint 7
+        [14.2720, 48.3150], // Waypoint 8
+        [14.2670, 48.3200], // Waypoint 9
+        [14.2654, 48.3250], // Back to start (closes the loop)
+      ];
+
+      // Remove existing route layer and source if they exist
+      if (map.current.getLayer('hiking-route')) {
+        map.current.removeLayer('hiking-route');
+      }
+      if (map.current.getSource('hiking-route')) {
+        map.current.removeSource('hiking-route');
+      }
+
+      // Add the route as a line source and layer
+      map.current.addSource('hiking-route', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: routeCoordinates,
+          },
+        },
+      });
+
+      map.current.addLayer({
+        id: 'hiking-route',
+        type: 'line',
+        source: 'hiking-route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#3b82f6', // Blue color for the hiking route
+          'line-width': 4,
+          'line-opacity': 0.8,
+        },
+      });
+
+      // Add marker at start/end point only
+      const startMarker = new mapboxgl.Marker({ color: '#22c55e' }) // Green for start
+        .setLngLat(routeCoordinates[0])
+        .setPopup(new mapboxgl.Popup().setHTML('<strong>Start/End</strong>'))
+        .addTo(map.current);
+      markers.current.push(startMarker);
+
+      // Fit map to show the entire route
+      const bounds = new mapboxgl.LngLatBounds();
+      routeCoordinates.forEach(coord => bounds.extend(coord));
+      map.current.fitBounds(bounds, { padding: 100, maxZoom: 14, duration: 2500, pitch: 0 });
     },
   }));
 

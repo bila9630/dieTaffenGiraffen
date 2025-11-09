@@ -24,9 +24,9 @@ export interface POIMarker {
 interface UseOpenAIOptions {
   onZoomToLocation?: (location: string) => Promise<void>;
   onDisplayMarkers?: (markers: POIMarker[]) => Promise<void>;
-  onAddMarkers?: (markers: POIMarker[]) => Promise<void>;
   onDisplayHiddenGem?: (marker: POIMarker) => Promise<void>;
   onCheckVisitorCapacity?: () => void;
+  onDisplayHikingRoute?: () => Promise<void>;
 }
 
 /**
@@ -50,7 +50,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers, onDisplayHiddenGem, onCheckVisitorCapacity }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -140,6 +140,17 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers, on
               },
             },
           },
+          {
+            type: 'function',
+            function: {
+              name: 'hiking_route_linz',
+              description: 'Display a scenic circular hiking route near Linz on the map. Use this when the user asks about hiking, walking routes, trails, or outdoor activities near Linz.',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
         ],
         tool_choice: 'auto',
       });
@@ -190,6 +201,9 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers, on
           } else if (toolCall.type === 'function' && toolCall.function?.name === 'check_visitor_capacity') {
             // Display and expand the InfoBox
             onCheckVisitorCapacity?.();
+          } else if (toolCall.type === 'function' && toolCall.function?.name === 'hiking_route_linz') {
+            // Display the hiking route on the map
+            await onDisplayHikingRoute?.();
           }
         }
       }

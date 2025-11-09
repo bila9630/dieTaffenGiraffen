@@ -28,6 +28,12 @@ const Index = () => {
     }
   };
 
+  const handleDisplayHikingRoute = async () => {
+    if (mapRef.current) {
+      await mapRef.current.displayHikingRoute();
+    }
+  };
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       <Map ref={mapRef} />
@@ -43,6 +49,7 @@ const Index = () => {
           onZoomToLocation={handleZoomToLocation}
           onDisplayMarkers={handleDisplayMarkers}
           onDisplayHiddenGem={handleDisplayHiddenGem}
+          onDisplayHikingRoute={handleDisplayHikingRoute}
         />
       )}
     </div>
