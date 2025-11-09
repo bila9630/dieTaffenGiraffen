@@ -25,10 +25,9 @@ interface ChatBoxProps {
   onCloseHiddenGem?: () => void;
   onDisplayTherapy?: (marker: POIMarker) => Promise<void>;
   onCloseTherapy?: () => void;
-  onShowTherapyBanner?: () => void;
 }
 
-const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDisplayHikingRoute, onCloseHiddenGem, onDisplayTherapy, onCloseTherapy, onShowTherapyBanner }: ChatBoxProps) => {
+const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDisplayHikingRoute, onCloseHiddenGem, onDisplayTherapy, onCloseTherapy }: ChatBoxProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -57,8 +56,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
     onCloseTherapy,
     onShowIntents: showIntents,
     onAddIntent: addIntent,
-    onClearIntents: clearIntents,
-    onShowTherapyBanner
+    onClearIntents: clearIntents
   });
 
   // Voice mode hook

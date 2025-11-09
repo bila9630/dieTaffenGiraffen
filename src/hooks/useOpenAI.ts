@@ -36,7 +36,6 @@ interface UseOpenAIOptions {
   onShowIntents?: (intents: Intent[]) => void;
   onAddIntent?: (intent: Intent) => void;
   onClearIntents?: () => void;
-  onShowTherapyBanner?: () => void;
 }
 
 /**
@@ -60,7 +59,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz, onCloseHiddenGem, onDisplayTherapy, onCloseTherapy, onShowIntents, onAddIntent, onClearIntents, onShowTherapyBanner }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz, onCloseHiddenGem, onDisplayTherapy, onCloseTherapy, onShowIntents, onAddIntent, onClearIntents }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<number>(-1);
   const [loadingFunction, setLoadingFunction] = useState<string>('');
@@ -207,7 +206,7 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
                 variant: "destructive",
               });
             } else if (data && onDisplayMarkers) {
-              await onDisplayMarkers(data as any);
+              await onDisplayMarkers(data);
             }
 
             setLoadingStep(-1); // Hide loading
@@ -232,7 +231,7 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
 
             // Fetch hidden gem from Supabase
             const { data, error } = await supabase
-              .from('hidden_gem' as any)
+              .from('hidden_gem')
               .select('id, name, lat, lon, rating, image_url, description');
 
             if (error) {
@@ -244,7 +243,7 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
               });
             } else if (data && data.length > 0 && onDisplayHiddenGem) {
               // Use displayHiddenGem to zoom in close and show in 3D
-              await onDisplayHiddenGem(data[0] as any);
+              await onDisplayHiddenGem(data[0]);
             }
 
             setLoadingStep(-1); // Hide loading
@@ -308,12 +307,6 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
 
             setLoadingStep(-1); // Hide loading
             setLoadingFunction('');
-
-            // Show therapy banner
-            onShowTherapyBanner?.();
-
-            // Wait for banner to complete (3.5s total: 3s display + 0.5s fade)
-            await new Promise(resolve => setTimeout(resolve, 3500));
 
             // Hardcoded therapy place data
             const therapyPlace: POIMarker = {

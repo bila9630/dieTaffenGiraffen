@@ -1,16 +1,14 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import Map, { MapRef, POIMarker } from '@/components/Map';
 import ChatBox from '@/components/ChatBox';
 import Navigation from '@/components/Navigation';
 import InfoBox from '@/components/InfoBox';
 import WeatherBox from '@/components/WeatherBox';
-import TherapyBanner from '@/components/TherapyBanner';
 import { useBoxVisibility } from '@/hooks/useBoxVisibility';
 
 const Index = () => {
   const mapRef = useRef<MapRef>(null);
   const { settings } = useBoxVisibility();
-  const [showTherapyBanner, setShowTherapyBanner] = useState(false);
 
   const handleZoomToLocation = async (location: string) => {
     if (mapRef.current) {
@@ -58,9 +56,6 @@ const Index = () => {
     <div className="relative h-screen w-full overflow-hidden bg-background">
       <Map ref={mapRef} />
       <Navigation />
-      {showTherapyBanner && (
-        <TherapyBanner onComplete={() => setShowTherapyBanner(false)} />
-      )}
       {(settings.infoBox || settings.weatherBox) && (
         <div className="fixed right-6 top-6 z-50 flex flex-col gap-4">
           {settings.infoBox && <InfoBox />}
@@ -76,7 +71,6 @@ const Index = () => {
           onCloseHiddenGem={handleCloseHiddenGem}
           onDisplayTherapy={handleDisplayTherapy}
           onCloseTherapy={handleCloseTherapy}
-          onShowTherapyBanner={() => setShowTherapyBanner(true)}
         />
       )}
     </div>
