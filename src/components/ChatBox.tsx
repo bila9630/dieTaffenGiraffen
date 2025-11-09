@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useOpenAI, getOpenAIKey, POIMarker } from '@/hooks/useOpenAI';
+import { useBoxVisibility } from '@/hooks/useBoxVisibility';
 
 interface Message {
   id: string;
@@ -35,7 +36,13 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem }: Cha
   const [tempApiKey, setTempApiKey] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { sendMessage, isLoading } = useOpenAI({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem });
+  const { check_visitor_capacity } = useBoxVisibility();
+  const { sendMessage, isLoading } = useOpenAI({
+    onZoomToLocation,
+    onDisplayMarkers,
+    onDisplayHiddenGem,
+    onCheckVisitorCapacity: check_visitor_capacity
+  });
 
   useEffect(() => {
     if (scrollRef.current) {

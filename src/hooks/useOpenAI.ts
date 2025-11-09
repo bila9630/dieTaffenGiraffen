@@ -26,6 +26,7 @@ interface UseOpenAIOptions {
   onDisplayMarkers?: (markers: POIMarker[]) => Promise<void>;
   onAddMarkers?: (markers: POIMarker[]) => Promise<void>;
   onDisplayHiddenGem?: (marker: POIMarker) => Promise<void>;
+  onCheckVisitorCapacity?: () => void;
 }
 
 /**
@@ -49,7 +50,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers, onDisplayHiddenGem }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers, onDisplayHiddenGem, onCheckVisitorCapacity }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -128,6 +129,17 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers, on
               },
             },
           },
+          {
+            type: 'function',
+            function: {
+              name: 'check_visitor_capacity',
+              description: 'Display and expand the visitor capacity information box showing current capacity levels, recommended visit times, and peak hours. Use this when the user asks about crowds, busy times, visitor numbers, capacity, or when to visit.',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
         ],
         tool_choice: 'auto',
       });
@@ -175,6 +187,9 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers, on
               // Use displayHiddenGem to zoom in close and show in 3D
               await onDisplayHiddenGem(data[0]);
             }
+          } else if (toolCall.type === 'function' && toolCall.function?.name === 'check_visitor_capacity') {
+            // Display and expand the InfoBox
+            onCheckVisitorCapacity?.();
           }
         }
       }

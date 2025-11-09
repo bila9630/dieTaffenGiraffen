@@ -200,6 +200,15 @@ const Map = forwardRef<MapRef>((props, ref) => {
         return;
       }
 
+      // Clear hidden gem and highlight when flying to a new location
+      setHiddenGem(null);
+      if (map.current.getLayer('highlighted-building')) {
+        map.current.removeLayer('highlighted-building');
+      }
+      if (map.current.getSource('highlighted-building')) {
+        map.current.removeSource('highlighted-building');
+      }
+
       try {
         // Use Mapbox Geocoding API to convert location name to coordinates
         const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${savedToken}&limit=1`;
@@ -235,6 +244,14 @@ const Map = forwardRef<MapRef>((props, ref) => {
       markers.current = [];
       setActivePOIs([]);
 
+      // Remove existing highlight layer if it exists
+      if (map.current.getLayer('highlighted-building')) {
+        map.current.removeLayer('highlighted-building');
+      }
+      if (map.current.getSource('highlighted-building')) {
+        map.current.removeSource('highlighted-building');
+      }
+
       // Zoom in closer to the building with a tilted pitch for better 3D view
       map.current.flyTo({
         center: [poi.lon, poi.lat],
@@ -245,9 +262,41 @@ const Map = forwardRef<MapRef>((props, ref) => {
         essential: true,
       });
 
-      // Wait for zoom animation to complete before showing the card
+      // Wait for zoom animation to complete before showing the card and highlighting
       const onMoveEnd = () => {
         setHiddenGem(poi);
+
+        // Add highlighted building layer
+        if (map.current && map.current.isStyleLoaded()) {
+          // Create a small bounding box around the point to find the building
+          const point = map.current.project([poi.lon, poi.lat]);
+          const radius = 10; // pixels
+          const features = map.current.queryRenderedFeatures(
+            [[point.x - radius, point.y - radius], [point.x + radius, point.y + radius]],
+            { layers: ['3d-buildings'] }
+          );
+
+          if (features && features.length > 0) {
+            // Get the building feature
+            const building = features[0];
+
+            // Add a highlighted version of this building
+            map.current.addLayer({
+              id: 'highlighted-building',
+              type: 'fill-extrusion',
+              source: 'composite',
+              'source-layer': 'building',
+              filter: ['==', ['id'], building.id],
+              paint: {
+                'fill-extrusion-color': '#eab308', // Yellow/gold color
+                'fill-extrusion-height': ['get', 'height'],
+                'fill-extrusion-base': ['get', 'min_height'],
+                'fill-extrusion-opacity': 0.9,
+              },
+            });
+          }
+        }
+
         map.current?.off('moveend', onMoveEnd);
       };
       map.current.once('moveend', onMoveEnd);
@@ -265,6 +314,14 @@ const Map = forwardRef<MapRef>((props, ref) => {
       // Clear existing cards and hidden gem immediately
       setActivePOIs([]);
       setHiddenGem(null);
+
+      // Remove highlight layer if it exists
+      if (map.current.getLayer('highlighted-building')) {
+        map.current.removeLayer('highlighted-building');
+      }
+      if (map.current.getSource('highlighted-building')) {
+        map.current.removeSource('highlighted-building');
+      }
 
       // Add simple pin markers
       poiMarkers.forEach(poi => {

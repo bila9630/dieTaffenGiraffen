@@ -1,11 +1,12 @@
-import { useState } from "react";
 import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useBoxVisibility } from "@/hooks/useBoxVisibility";
 
 const InfoBox = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const { expansionSettings, updateExpansion } = useBoxVisibility();
+  const isExpanded = expansionSettings.infoBoxExpanded;
 
   // Mock data for visitor capacity during the day (hourly percentages)
   const dailyData = [
@@ -32,7 +33,7 @@ const InfoBox = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={() => updateExpansion('infoBoxExpanded', !isExpanded)}
               className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
             >
               {isExpanded ? '−' : '+'}

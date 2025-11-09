@@ -6,9 +6,17 @@ export interface BoxVisibilitySettings {
   weatherBox: boolean;
 }
 
+export interface BoxExpansionSettings {
+  infoBoxExpanded: boolean;
+  weatherBoxExpanded: boolean;
+}
+
 interface BoxVisibilityContextType {
   settings: BoxVisibilitySettings;
   updateSetting: (key: keyof BoxVisibilitySettings, value: boolean) => void;
+  expansionSettings: BoxExpansionSettings;
+  updateExpansion: (key: keyof BoxExpansionSettings, value: boolean) => void;
+  check_visitor_capacity: () => void;
 }
 
 const STORAGE_KEY = 'box_visibility_settings';
@@ -17,6 +25,11 @@ const DEFAULT_SETTINGS: BoxVisibilitySettings = {
   chatBox: true,
   infoBox: true,
   weatherBox: true,
+};
+
+const DEFAULT_EXPANSION: BoxExpansionSettings = {
+  infoBoxExpanded: false,
+  weatherBoxExpanded: false,
 };
 
 export const BoxVisibilityContext = createContext<BoxVisibilityContextType | undefined>(
@@ -40,6 +53,8 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
     return DEFAULT_SETTINGS;
   });
 
+  const [expansionSettings, setExpansionSettings] = useState<BoxExpansionSettings>(DEFAULT_EXPANSION);
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -55,8 +70,36 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
     }));
   };
 
+  const updateExpansion = (key: keyof BoxExpansionSettings, value: boolean) => {
+    setExpansionSettings((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const check_visitor_capacity = () => {
+    // Show InfoBox if not already visible
+    setSettings((prev) => ({
+      ...prev,
+      infoBox: true,
+    }));
+    // Expand InfoBox
+    setExpansionSettings((prev) => ({
+      ...prev,
+      infoBoxExpanded: true,
+    }));
+  };
+
   return (
-    <BoxVisibilityContext.Provider value={{ settings, updateSetting }}>
+    <BoxVisibilityContext.Provider
+      value={{
+        settings,
+        updateSetting,
+        expansionSettings,
+        updateExpansion,
+        check_visitor_capacity
+      }}
+    >
       {children}
     </BoxVisibilityContext.Provider>
   );
