@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, Key, Loader2, Check } from 'lucide-react';
+import { Send, MessageCircle, Key, Loader2, Check, Mic, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useOpenAI, getOpenAIKey, POIMarker } from '@/hooks/useOpenAI';
 import { useBoxVisibility } from '@/hooks/useBoxVisibility';
+import { useOpenAIRealtime } from '@/hooks/useOpenAIRealtime';
+import VoiceMode from './VoiceMode';
 
 interface Message {
   id: string;
@@ -36,6 +38,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
+  const [mode, setMode] = useState<'text' | 'voice'>('text');
   const [apiKey, setApiKey] = useState<string>(() => getOpenAIKey());
   const [tempApiKey, setTempApiKey] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -54,6 +57,32 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
     onShowIntents: showIntents,
     onAddIntent: addIntent,
     onClearIntents: clearIntents
+  });
+
+  // Voice mode hook
+  const {
+    connect: connectVoice,
+    disconnect: disconnectVoice,
+    connectionStatus,
+    voiceStatus,
+    isRecording,
+    audioLevel,
+    loadingStep: voiceLoadingStep,
+    loadingFunction: voiceLoadingFunction,
+    transcript,
+  } = useOpenAIRealtime({
+    onZoomToLocation,
+    onDisplayMarkers,
+    onDisplayHiddenGem,
+    onCheckVisitorCapacity: check_visitor_capacity,
+    onDisplayHikingRoute,
+    onHikingRouteLinz: hiking_route_linz,
+    onCloseHiddenGem,
+    onDisplayTherapy,
+    onCloseTherapy,
+    onShowIntents: showIntents,
+    onAddIntent: addIntent,
+    onClearIntents: clearIntents,
   });
 
   const getLoadingSteps = (functionName: string): string[] => {
@@ -141,6 +170,18 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
     }
   };
 
+  const handleModeChange = (newMode: 'text' | 'voice') => {
+    if (newMode === 'voice' && mode === 'text') {
+      // Disconnect voice when switching to text
+      disconnectVoice();
+    }
+    setMode(newMode);
+  };
+
+  const handleConnectVoice = () => {
+    connectVoice(apiKey);
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-3rem)]">
       <div className="overflow-hidden rounded-xl border border-glass-border bg-card/70 shadow-2xl backdrop-blur-xl">
@@ -155,17 +196,40 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
               <p className="text-xs text-muted-foreground">Powered by AI</p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-          >
-            {isExpanded ? '−' : '+'}
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Mode Toggle */}
+            {apiKey && (
+              <div className="flex gap-1 bg-muted/50 rounded-md p-1">
+                <Button
+                  variant={mode === 'text' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => handleModeChange('text')}
+                  className="h-6 px-2"
+                >
+                  <MessageSquare className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant={mode === 'voice' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => handleModeChange('voice')}
+                  className="h-6 px-2"
+                >
+                  <Mic className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            >
+              {isExpanded ? '−' : '+'}
+            </Button>
+          </div>
         </div>
 
-        {/* Messages */}
+        {/* Content */}
         {isExpanded && (
           <>
             {!apiKey ? (
@@ -209,6 +273,18 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
                   </CardContent>
                 </Card>
               </div>
+            ) : mode === 'voice' ? (
+              <VoiceMode
+                connectionStatus={connectionStatus}
+                voiceStatus={voiceStatus}
+                isRecording={isRecording}
+                audioLevel={audioLevel}
+                loadingStep={voiceLoadingStep}
+                loadingFunction={voiceLoadingFunction}
+                transcript={transcript}
+                onConnect={handleConnectVoice}
+                onDisconnect={disconnectVoice}
+              />
             ) : (
               <ScrollArea className="h-60 p-4">
                 <div className="space-y-4">
@@ -278,8 +354,8 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
               </ScrollArea>
             )}
 
-            {/* Input */}
-            {apiKey && (
+            {/* Input - Only show in text mode */}
+            {apiKey && mode === 'text' && (
               <form onSubmit={handleSendMessage} className="border-t border-border/50 bg-card/50 p-4">
                 <div className="flex gap-2">
                   <Input
