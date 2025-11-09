@@ -37,8 +37,8 @@ const STORAGE_KEY = 'box_visibility_settings';
 
 const DEFAULT_SETTINGS: BoxVisibilitySettings = {
   chatBox: true,
-  infoBox: true,
-  weatherBox: true,
+  infoBox: false,
+  weatherBox: false,
 };
 
 const DEFAULT_EXPANSION: BoxExpansionSettings = {
