@@ -1,4 +1,4 @@
-# TripTune: The Psycho-Logical Travel AI
+<img width="1918" height="977" alt="image" src="https://github.com/user-attachments/assets/3e4b3509-b70a-4b67-862c-c336d0f3c67e" /># TripTune: The Psycho-Logical Travel AI
 
 **TripTune** is an AI-powered travel tuner that re-frames "busyness" into "preference." It's a "Map + Chat" interface designed to solve the overtourism paradox, guiding users to more sustainable and satisfying experiences by transforming raw data into psychological context.
 
@@ -8,7 +8,8 @@
 [![Supabase](https://img.shields.io/badge/Supabase-green?logo=supabase)](https://supabase.com/)
 [![Gemini](https://img.shields.io/badge/Gemini-AI-purple?logo=google)](https://ai.google.dev/)
 
-![TripTune Interface](https://placehold.co/1200x600/2d3748/e2e8f0?text=TripTune%20App%20Screenshot)
+<img width="1918" height="977" alt="image" src="https://github.com/user-attachments/assets/f086cba9-e828-4744-90be-7b5f74254e5e" />
+
 
 ## 🌟 Hackathon Context
 
