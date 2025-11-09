@@ -31,6 +31,8 @@ interface UseOpenAIOptions {
   onDisplayHikingRoute?: () => Promise<void>;
   onHikingRouteLinz?: () => void;
   onCloseHiddenGem?: () => void;
+  onDisplayTherapy?: (marker: POIMarker) => Promise<void>;
+  onCloseTherapy?: () => void;
   onShowIntents?: (intents: Intent[]) => void;
   onAddIntent?: (intent: Intent) => void;
   onClearIntents?: () => void;
@@ -57,7 +59,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz, onCloseHiddenGem, onShowIntents, onAddIntent, onClearIntents }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz, onCloseHiddenGem, onDisplayTherapy, onCloseTherapy, onShowIntents, onAddIntent, onClearIntents }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<number>(-1);
   const [loadingFunction, setLoadingFunction] = useState<string>('');
@@ -143,6 +145,17 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
             function: {
               name: 'hiking_route_linz',
               description: 'Display a scenic circular hiking route near Linz on the map. Use this when the user asks about hiking, walking routes, trails, or outdoor activities near Linz.',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'therapy_linz',
+              description: 'Display a couples therapy center in Linz on the map in 3D. Use this when the user asks about therapy, couples therapy, counseling, relationship help, or mental health services in Linz.',
               parameters: {
                 type: 'object',
                 properties: {},
@@ -270,6 +283,44 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
 
             // Display the hiking route on the map
             await onDisplayHikingRoute?.();
+
+            // Clear intents after all steps complete
+            onClearIntents?.();
+          } else if (toolCall.type === 'function' && toolCall.function?.name === 'therapy_linz') {
+            // Show intents for therapy
+            onShowIntents?.([
+              { text: 'Relationship Support', category: 'planning', confidence: 93 },
+              { text: 'Wellness', category: 'activity', confidence: 88 }
+            ]);
+
+            setLoadingFunction('therapy_linz');
+            setLoadingStep(0); // Step 1: search therapy centers
+            // Close HiddenGemCard if open
+            onCloseHiddenGem?.();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            setLoadingStep(1); // Step 2: check availability
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            setLoadingStep(2); // Step 3: display result
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            setLoadingStep(-1); // Hide loading
+            setLoadingFunction('');
+
+            // Hardcoded therapy place data
+            const therapyPlace: POIMarker = {
+              id: 999,
+              name: 'Couple Therapy Can Lichtenberg',
+              lat: 48.30604083233107,
+              lon: 14.28505931339385,
+              rating: 4.8,
+              image_url: '/therapie.png',
+              description: 'Professional couples therapy and relationship counseling in a warm, supportive environment.'
+            };
+
+            // Display the therapy place on the map
+            await onDisplayTherapy?.(therapyPlace);
 
             // Clear intents after all steps complete
             onClearIntents?.();

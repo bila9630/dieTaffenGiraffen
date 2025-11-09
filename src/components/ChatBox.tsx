@@ -21,9 +21,11 @@ interface ChatBoxProps {
   onDisplayHiddenGem?: (marker: POIMarker) => Promise<void>;
   onDisplayHikingRoute?: () => Promise<void>;
   onCloseHiddenGem?: () => void;
+  onDisplayTherapy?: (marker: POIMarker) => Promise<void>;
+  onCloseTherapy?: () => void;
 }
 
-const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDisplayHikingRoute, onCloseHiddenGem }: ChatBoxProps) => {
+const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDisplayHikingRoute, onCloseHiddenGem, onDisplayTherapy, onCloseTherapy }: ChatBoxProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -47,6 +49,8 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
     onDisplayHikingRoute,
     onHikingRouteLinz: hiking_route_linz,
     onCloseHiddenGem,
+    onDisplayTherapy,
+    onCloseTherapy,
     onShowIntents: showIntents,
     onAddIntent: addIntent,
     onClearIntents: clearIntents
@@ -59,6 +63,8 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
       case 'top_5_linz_attractions':
       case 'hidden_gem_linz':
         return ['search attractions', 'check rating', 'display result'];
+      case 'therapy_linz':
+        return ['search therapy centers', 'check availability', 'display result'];
       default:
         return [];
     }
@@ -72,6 +78,8 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
         return 'top attractions';
       case 'hidden_gem_linz':
         return 'hidden gem';
+      case 'therapy_linz':
+        return 'couples therapy';
       default:
         return '';
     }

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import POICards from './POICards';
 import HiddenGemCard from './HiddenGemCard';
 import HikingCard from './HikingCard';
+import TherapyCard from './TherapyCard';
 
 export interface POIMarker {
   id: number;
@@ -24,6 +25,8 @@ export interface MapRef {
   displayHiddenGem: (marker: POIMarker) => Promise<void>;
   displayHikingRoute: () => Promise<void>;
   closeHiddenGem: () => void;
+  displayTherapy: (marker: POIMarker) => Promise<void>;
+  closeTherapy: () => void;
 }
 
 const Map = forwardRef<MapRef>((props, ref) => {
@@ -38,6 +41,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
   const [activePOIs, setActivePOIs] = useState<POIMarker[]>([]);
   const [hiddenGem, setHiddenGem] = useState<POIMarker | null>(null);
   const [showHikingRoute, setShowHikingRoute] = useState(false);
+  const [therapyPlace, setTherapyPlace] = useState<POIMarker | null>(null);
 
   const initializeMap = (token: string) => {
     if (!mapContainer.current) return;
@@ -204,8 +208,9 @@ const Map = forwardRef<MapRef>((props, ref) => {
         return;
       }
 
-      // Clear hidden gem, hiking route, and highlight when flying to a new location
+      // Clear hidden gem, therapy, hiking route, and highlight when flying to a new location
       setHiddenGem(null);
+      setTherapyPlace(null);
       setShowHikingRoute(false);
       if (map.current.getLayer('highlighted-building')) {
         map.current.removeLayer('highlighted-building');
@@ -252,10 +257,11 @@ const Map = forwardRef<MapRef>((props, ref) => {
         return;
       }
 
-      // Remove existing markers, POI cards, and hiking route
+      // Remove existing markers, POI cards, therapy, and hiking route
       markers.current.forEach(marker => marker.remove());
       markers.current = [];
       setActivePOIs([]);
+      setTherapyPlace(null);
       setShowHikingRoute(false);
 
       // Remove existing highlight layer if it exists
@@ -333,9 +339,10 @@ const Map = forwardRef<MapRef>((props, ref) => {
       markers.current.forEach(marker => marker.remove());
       markers.current = [];
 
-      // Clear existing cards, hidden gem, and hiking route immediately
+      // Clear existing cards, hidden gem, therapy, and hiking route immediately
       setActivePOIs([]);
       setHiddenGem(null);
+      setTherapyPlace(null);
       setShowHikingRoute(false);
 
       // Remove highlight layer if it exists
@@ -416,6 +423,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
       markers.current = [];
       setActivePOIs([]);
       setHiddenGem(null);
+      setTherapyPlace(null);
       setShowHikingRoute(false);
 
       // Remove highlight layer if it exists
@@ -544,6 +552,89 @@ const Map = forwardRef<MapRef>((props, ref) => {
     closeHiddenGem: () => {
       setHiddenGem(null);
     },
+    displayTherapy: async (poi: POIMarker) => {
+      if (!map.current) {
+        console.error('Map not initialized');
+        return;
+      }
+
+      // Remove existing markers, POI cards, hidden gem, and hiking route
+      markers.current.forEach(marker => marker.remove());
+      markers.current = [];
+      setActivePOIs([]);
+      setHiddenGem(null);
+      setShowHikingRoute(false);
+
+      // Remove existing highlight layer if it exists
+      if (map.current.getLayer('highlighted-building')) {
+        map.current.removeLayer('highlighted-building');
+      }
+      if (map.current.getSource('highlighted-building')) {
+        map.current.removeSource('highlighted-building');
+      }
+
+      // Remove hiking route layer if it exists
+      if (map.current.getLayer('hiking-route')) {
+        map.current.removeLayer('hiking-route');
+      }
+      if (map.current.getSource('hiking-route')) {
+        map.current.removeSource('hiking-route');
+      }
+
+      // Zoom in closer to the therapy building with a tilted pitch for better 3D view
+      map.current.flyTo({
+        center: [poi.lon, poi.lat],
+        zoom: 17.5,
+        pitch: 60,
+        bearing: 0,
+        duration: 3000,
+        essential: true,
+      });
+
+      // Wait for zoom animation to complete before showing the card and highlighting
+      const onMoveEnd = () => {
+        setTherapyPlace(poi);
+
+        // Add highlighted building layer
+        if (map.current && map.current.isStyleLoaded()) {
+          // Create a small bounding box around the point to find the building
+          const point = map.current.project([poi.lon, poi.lat]);
+          const radius = 10; // pixels
+          const features = map.current.queryRenderedFeatures(
+            [[point.x - radius, point.y - radius], [point.x + radius, point.y + radius]],
+            { layers: ['3d-buildings'] }
+          );
+
+          if (features.length > 0) {
+            const buildingFeature = features[0];
+
+            map.current.addSource('highlighted-building', {
+              type: 'geojson',
+              data: buildingFeature.toJSON(),
+            });
+
+            map.current.addLayer({
+              id: 'highlighted-building',
+              type: 'fill-extrusion',
+              source: 'highlighted-building',
+              paint: {
+                'fill-extrusion-color': '#ec4899',
+                'fill-extrusion-height': ['get', 'height'],
+                'fill-extrusion-base': ['get', 'min_height'],
+                'fill-extrusion-opacity': 0.8,
+              },
+            });
+          }
+        }
+
+        map.current?.off('moveend', onMoveEnd);
+      };
+
+      map.current.once('moveend', onMoveEnd);
+    },
+    closeTherapy: () => {
+      setTherapyPlace(null);
+    },
   }));
 
   useEffect(() => {
@@ -609,6 +700,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
       <div ref={mapContainer} className="w-full h-full" />
       {activePOIs.length > 0 && <POICards activePOIs={activePOIs} map={map.current} />}
       {hiddenGem && <HiddenGemCard poi={hiddenGem} />}
+      {therapyPlace && <TherapyCard poi={therapyPlace} />}
       {showHikingRoute && (
         <HikingCard
           route={{

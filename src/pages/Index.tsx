@@ -40,6 +40,18 @@ const Index = () => {
     }
   };
 
+  const handleDisplayTherapy = async (marker: POIMarker) => {
+    if (mapRef.current) {
+      await mapRef.current.displayTherapy(marker);
+    }
+  };
+
+  const handleCloseTherapy = () => {
+    if (mapRef.current) {
+      mapRef.current.closeTherapy();
+    }
+  };
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       <Map ref={mapRef} />
@@ -57,6 +69,8 @@ const Index = () => {
           onDisplayHiddenGem={handleDisplayHiddenGem}
           onDisplayHikingRoute={handleDisplayHikingRoute}
           onCloseHiddenGem={handleCloseHiddenGem}
+          onDisplayTherapy={handleDisplayTherapy}
+          onCloseTherapy={handleCloseTherapy}
         />
       )}
     </div>
