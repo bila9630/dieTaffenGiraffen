@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, Key, Loader2, Check, Mic, MessageSquare } from 'lucide-react';
+import { Send, MessageCircle, Key, Loader2, Check, Mic, MessageSquare, Presentation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,6 +9,7 @@ import { useOpenAI, getOpenAIKey, POIMarker } from '@/hooks/useOpenAI';
 import { useBoxVisibility } from '@/hooks/useBoxVisibility';
 import { useOpenAIRealtime } from '@/hooks/useOpenAIRealtime';
 import VoiceMode from './VoiceMode';
+import PresentationMode from './PresentationMode';
 
 interface Message {
   id: string;
@@ -38,9 +39,14 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
-  const [mode, setMode] = useState<'text' | 'voice'>('text');
+  const [mode, setMode] = useState<'text' | 'voice' | 'presentation'>('text');
   const [apiKey, setApiKey] = useState<string>(() => getOpenAIKey());
   const [tempApiKey, setTempApiKey] = useState('');
+
+  // Presentation mode states
+  const [presentationStatus, setPresentationStatus] = useState<'idle' | 'processing'>('idle');
+  const [presentationSequence, setPresentationSequence] = useState(0);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { check_visitor_capacity, hiking_route_linz, showIntents, addIntent, clearIntents } = useBoxVisibility();
@@ -84,6 +90,70 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
     onAddIntent: addIntent,
     onClearIntents: clearIntents,
   });
+
+  // Presentation mode - get message for each function
+  const getPresentationMessage = (functionName: string): string => {
+    switch (functionName) {
+      case 'top_5_linz_attractions':
+        return 'cool spots in linz';
+      case 'hidden_gem_linz':
+        return 'show me a hidden gem in linz';
+      case 'hiking_route_linz':
+        return 'hiking route in linz';
+      case 'therapy_linz':
+        return 'couples therapy in linz';
+      default:
+        return '';
+    }
+  };
+
+  // Presentation mode - send message to ChatGPT
+  const triggerPresentationFunction = async (functionName: string) => {
+    setPresentationStatus('processing');
+
+    const messageText = getPresentationMessage(functionName);
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text: messageText,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+
+    // Send message to ChatGPT and let it call the function
+    const aiResponse = await sendMessage(newMessage, messages, apiKey);
+
+    if (aiResponse) {
+      setMessages((prev) => [...prev, aiResponse]);
+    }
+
+    setPresentationStatus('idle');
+  };
+
+  // Keyboard event listener for presentation mode
+  useEffect(() => {
+    if (mode !== 'presentation') return;
+
+    const handleKeyPress = async (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 'a' && presentationStatus === 'idle' && !isLoading) {
+        const functions = ['top_5_linz_attractions', 'hidden_gem_linz', 'hiking_route_linz', 'therapy_linz'];
+
+        if (presentationSequence >= 4) {
+          // Reset sequence
+          setPresentationSequence(0);
+          return;
+        }
+
+        const functionToCall = functions[presentationSequence];
+        await triggerPresentationFunction(functionToCall);
+        setPresentationSequence(prev => prev + 1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [mode, presentationStatus, presentationSequence, isLoading, messages, apiKey]);
 
   const getLoadingSteps = (functionName: string): string[] => {
     switch (functionName) {
@@ -170,10 +240,15 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
     }
   };
 
-  const handleModeChange = (newMode: 'text' | 'voice') => {
-    if (newMode === 'voice' && mode === 'text') {
-      // Disconnect voice when switching to text
+  const handleModeChange = (newMode: 'text' | 'voice' | 'presentation') => {
+    if (mode === 'voice') {
+      // Disconnect voice when switching away from voice mode
       disconnectVoice();
+    }
+    if (newMode === 'presentation') {
+      // Reset presentation state when switching to presentation mode
+      setPresentationSequence(0);
+      setPresentationStatus('idle');
     }
     setMode(newMode);
   };
@@ -215,6 +290,14 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
                   className="h-6 px-2"
                 >
                   <Mic className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant={mode === 'presentation' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => handleModeChange('presentation')}
+                  className="h-6 px-2"
+                >
+                  <Presentation className="h-3 w-3" />
                 </Button>
               </div>
             )}
@@ -284,6 +367,13 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
                 transcript={transcript}
                 onConnect={handleConnectVoice}
                 onDisconnect={disconnectVoice}
+              />
+            ) : mode === 'presentation' ? (
+              <PresentationMode
+                status={isLoading ? 'processing' : presentationStatus}
+                loadingStep={loadingStep}
+                loadingFunction={loadingFunction}
+                currentSequence={presentationSequence}
               />
             ) : (
               <ScrollArea className="h-60 p-4">
