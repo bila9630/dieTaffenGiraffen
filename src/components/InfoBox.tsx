@@ -10,17 +10,19 @@ const InfoBox = () => {
 
   // Mock data for visitor capacity during the day (hourly percentages)
   const dailyData = [
-    { time: "6am", capacity: 15 },
-    { time: "9am", capacity: 42 },
-    { time: "12pm", capacity: 95 },
-    { time: "3pm", capacity: 68 },
+    { time: "6am", capacity: 50 },
+    { time: "9am", capacity: 90 },
+    { time: "12pm", capacity: 100 },
+    { time: "3pm", capacity: 70 },
     { time: "6pm", capacity: 35 },
-    { time: "9pm", capacity: 18 },
+    { time: "9pm", capacity: 38 },
   ];
 
-  const currentCapacity = dailyData[2].capacity; // Using 12pm as current time
-  const recommendedTime = "6am - 9am";
-  const peakTime = "12pm - 1pm";
+  const averageCapacity = Math.round(
+    dailyData.reduce((sum, item) => sum + item.capacity, 0) / dailyData.length
+  );
+  const recommendedTime = "3pm - 6pm";
+  const peakTime = "12am - 1pm";
 
   return (
     <Card className="w-72 border-glass-border bg-card/70 backdrop-blur-xl">
@@ -42,19 +44,19 @@ const InfoBox = () => {
         </CardHeader>
 
         {isExpanded && (
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             {/* Main Metric */}
             <div className="space-y-1">
               <div className="flex items-baseline justify-between">
-                <p className="text-xs text-muted-foreground">Current Capacity</p>
+                <p className="text-xs text-muted-foreground">Average Capacity</p>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-yellow-500">{currentCapacity}%</span>
+                <span className="text-3xl font-bold text-yellow-500">{averageCapacity}%</span>
               </div>
             </div>
 
             {/* Line Chart */}
-            <div className="h-24">
+            <div className="h-16">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={dailyData}>
                   <XAxis
@@ -73,6 +75,7 @@ const InfoBox = () => {
                       fontSize: "12px",
                     }}
                     labelStyle={{ color: "hsl(var(--foreground))" }}
+                    formatter={(value: number) => `${value}%`}
                   />
                   <Line type="monotone" dataKey="capacity" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
                 </LineChart>
@@ -80,7 +83,7 @@ const InfoBox = () => {
             </div>
 
             {/* Additional Stats */}
-            <div className="grid grid-cols-2 gap-4 pt-2">
+            <div className="grid grid-cols-2 gap-4 pt-1">
               <div>
                 <p className="text-xs text-muted-foreground">Recommended</p>
                 <p className="text-sm font-bold text-primary">{recommendedTime}</p>
