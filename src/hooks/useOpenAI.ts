@@ -18,6 +18,7 @@ export interface POIMarker {
   lon: number;
   rating?: number;
   image_url?: string;
+  description?: string;
 }
 
 interface UseOpenAIOptions {
@@ -108,7 +109,7 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers }: 
             type: 'function',
             function: {
               name: 'top_5_linz_attractions',
-              description: 'Fetch and display the top 5 attractions in Linz on the map as markers.',
+              description: 'Fetch and display the top 5 attractions in Linz on the map as markers. Use this when the user asks about attractions, cool spots, places to visit, things to do, or any general tourism questions about Linz.',
               parameters: {
                 type: 'object',
                 properties: {},
@@ -119,7 +120,7 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers }: 
             type: 'function',
             function: {
               name: 'hidden_gem_linz',
-              description: 'Fetch and display a hidden gem spot in Linz on the map. This will replace any existing markers with the hidden gem marker.',
+              description: 'Fetch and display a hidden gem spot in Linz on the map. ONLY use this function when the user explicitly asks for a "hidden gem", "secret spot", "hidden spot", or similar terms. This will replace any existing markers with the hidden gem marker.',
               parameters: {
                 type: 'object',
                 properties: {},
@@ -160,7 +161,7 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onAddMarkers }: 
             // Fetch hidden gem from Supabase
             const { data, error } = await supabase
               .from('hidden_gem')
-              .select('id, name, lat, lon, rating, image_url');
+              .select('id, name, lat, lon, rating, image_url, description');
 
             if (error) {
               console.error('Error fetching hidden gem:', error);

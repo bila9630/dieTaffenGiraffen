@@ -11,6 +11,7 @@ export interface POIMarker {
   lon: number;
   rating?: number;
   image_url?: string;
+  description?: string;
 }
 
 export interface MapRef {
@@ -401,7 +402,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
                 )}
                 <div className="pt-2 border-t border-slate-600/30">
                   <p className="text-[10px] text-slate-400 font-medium">
-                    📍 Top Attraction in Linz
+                    {pos.poi.description || '📍 Top Attraction in Linz'}
                   </p>
                 </div>
               </div>
