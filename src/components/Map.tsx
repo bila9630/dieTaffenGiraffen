@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import POICards from './POICards';
 import HiddenGemCard from './HiddenGemCard';
+import HikingCard from './HikingCard';
 
 export interface POIMarker {
   id: number;
@@ -35,6 +36,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
   const [isLoading, setIsLoading] = useState(false);
   const [activePOIs, setActivePOIs] = useState<POIMarker[]>([]);
   const [hiddenGem, setHiddenGem] = useState<POIMarker | null>(null);
+  const [showHikingRoute, setShowHikingRoute] = useState(false);
 
   const initializeMap = (token: string) => {
     if (!mapContainer.current) return;
@@ -201,13 +203,22 @@ const Map = forwardRef<MapRef>((props, ref) => {
         return;
       }
 
-      // Clear hidden gem and highlight when flying to a new location
+      // Clear hidden gem, hiking route, and highlight when flying to a new location
       setHiddenGem(null);
+      setShowHikingRoute(false);
       if (map.current.getLayer('highlighted-building')) {
         map.current.removeLayer('highlighted-building');
       }
       if (map.current.getSource('highlighted-building')) {
         map.current.removeSource('highlighted-building');
+      }
+
+      // Remove hiking route layer if it exists
+      if (map.current.getLayer('hiking-route')) {
+        map.current.removeLayer('hiking-route');
+      }
+      if (map.current.getSource('hiking-route')) {
+        map.current.removeSource('hiking-route');
       }
 
       try {
@@ -240,10 +251,11 @@ const Map = forwardRef<MapRef>((props, ref) => {
         return;
       }
 
-      // Remove existing markers and POI cards
+      // Remove existing markers, POI cards, and hiking route
       markers.current.forEach(marker => marker.remove());
       markers.current = [];
       setActivePOIs([]);
+      setShowHikingRoute(false);
 
       // Remove existing highlight layer if it exists
       if (map.current.getLayer('highlighted-building')) {
@@ -251,6 +263,14 @@ const Map = forwardRef<MapRef>((props, ref) => {
       }
       if (map.current.getSource('highlighted-building')) {
         map.current.removeSource('highlighted-building');
+      }
+
+      // Remove hiking route layer if it exists
+      if (map.current.getLayer('hiking-route')) {
+        map.current.removeLayer('hiking-route');
+      }
+      if (map.current.getSource('hiking-route')) {
+        map.current.removeSource('hiking-route');
       }
 
       // Zoom in closer to the building with a tilted pitch for better 3D view
@@ -312,9 +332,10 @@ const Map = forwardRef<MapRef>((props, ref) => {
       markers.current.forEach(marker => marker.remove());
       markers.current = [];
 
-      // Clear existing cards and hidden gem immediately
+      // Clear existing cards, hidden gem, and hiking route immediately
       setActivePOIs([]);
       setHiddenGem(null);
+      setShowHikingRoute(false);
 
       // Remove highlight layer if it exists
       if (map.current.getLayer('highlighted-building')) {
@@ -322,6 +343,14 @@ const Map = forwardRef<MapRef>((props, ref) => {
       }
       if (map.current.getSource('highlighted-building')) {
         map.current.removeSource('highlighted-building');
+      }
+
+      // Remove hiking route layer if it exists
+      if (map.current.getLayer('hiking-route')) {
+        map.current.removeLayer('hiking-route');
+      }
+      if (map.current.getSource('hiking-route')) {
+        map.current.removeSource('hiking-route');
       }
 
       // Add simple pin markers
@@ -458,6 +487,9 @@ const Map = forwardRef<MapRef>((props, ref) => {
       const bounds = new mapboxgl.LngLatBounds();
       routeCoordinates.forEach(coord => bounds.extend(coord));
       map.current.fitBounds(bounds, { padding: 100, maxZoom: 14, duration: 2500, pitch: 0 });
+
+      // Show the hiking card
+      setShowHikingRoute(true);
     },
   }));
 
@@ -524,6 +556,20 @@ const Map = forwardRef<MapRef>((props, ref) => {
       <div ref={mapContainer} className="w-full h-full" />
       {activePOIs.length > 0 && <POICards activePOIs={activePOIs} map={map.current} />}
       {hiddenGem && <HiddenGemCard poi={hiddenGem} />}
+      {showHikingRoute && (
+        <HikingCard
+          route={{
+            name: 'Pöstlingberg Panorama Trail',
+            rating: 4,
+            distance: '10.7 km',
+            duration: '3h 25min',
+            elevationUp: '440 m',
+            elevationDown: '440 m',
+            description: 'Moderate hike. Good basic fitness required. Easily accessible trails. No special skills required.',
+            imageUrl: '/hiking.webp',
+          }}
+        />
+      )}
     </div>
   );
 });
