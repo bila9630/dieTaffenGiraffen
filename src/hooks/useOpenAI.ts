@@ -27,6 +27,7 @@ interface UseOpenAIOptions {
   onDisplayHiddenGem?: (marker: POIMarker) => Promise<void>;
   onCheckVisitorCapacity?: () => void;
   onDisplayHikingRoute?: () => Promise<void>;
+  onHikingRouteLinz?: () => void;
 }
 
 /**
@@ -50,7 +51,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
 /**
  * Custom hook for OpenAI chat functionality with function calling support
  */
-export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute }: UseOpenAIOptions = {}) => {
+export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute, onHikingRouteLinz }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [hikingLoadingStep, setHikingLoadingStep] = useState<number>(-1);
   const { toast } = useToast();
@@ -208,6 +209,8 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             setHikingLoadingStep(1); // Step 2: check weather
+            // Show WeatherBox and hide InfoBox when checking weather
+            onHikingRouteLinz?.();
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             setHikingLoadingStep(2); // Step 3: display result

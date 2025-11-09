@@ -17,6 +17,7 @@ interface BoxVisibilityContextType {
   expansionSettings: BoxExpansionSettings;
   updateExpansion: (key: keyof BoxExpansionSettings, value: boolean) => void;
   check_visitor_capacity: () => void;
+  hiking_route_linz: () => void;
 }
 
 const STORAGE_KEY = 'box_visibility_settings';
@@ -90,6 +91,21 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
     }));
   };
 
+  const hiking_route_linz = () => {
+    // Show WeatherBox and expand it
+    setSettings((prev) => ({
+      ...prev,
+      weatherBox: true,
+      infoBox: false, // Hide InfoBox
+    }));
+    // Expand WeatherBox
+    setExpansionSettings((prev) => ({
+      ...prev,
+      weatherBoxExpanded: true,
+      infoBoxExpanded: false,
+    }));
+  };
+
   return (
     <BoxVisibilityContext.Provider
       value={{
@@ -97,7 +113,8 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
         updateSetting,
         expansionSettings,
         updateExpansion,
-        check_visitor_capacity
+        check_visitor_capacity,
+        hiking_route_linz
       }}
     >
       {children}

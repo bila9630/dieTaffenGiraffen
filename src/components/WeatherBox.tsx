@@ -1,10 +1,11 @@
-import { useState } from "react";
 import { Cloud, Sun, CloudRain } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useBoxVisibility } from "@/hooks/useBoxVisibility";
 
 const WeatherBox = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const { expansionSettings, updateExpansion } = useBoxVisibility();
+  const isExpanded = expansionSettings.weatherBoxExpanded;
 
   // Mock weather data for the week
   const weeklyWeather = [
@@ -43,7 +44,7 @@ const WeatherBox = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={() => updateExpansion('weatherBoxExpanded', !isExpanded)}
               className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
             >
               {isExpanded ? '−' : '+'}

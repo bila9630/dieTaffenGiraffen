@@ -37,13 +37,14 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
   const [tempApiKey, setTempApiKey] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { check_visitor_capacity } = useBoxVisibility();
+  const { check_visitor_capacity, hiking_route_linz } = useBoxVisibility();
   const { sendMessage, isLoading, hikingLoadingStep } = useOpenAI({
     onZoomToLocation,
     onDisplayMarkers,
     onDisplayHiddenGem,
     onCheckVisitorCapacity: check_visitor_capacity,
-    onDisplayHikingRoute
+    onDisplayHikingRoute,
+    onHikingRouteLinz: hiking_route_linz
   });
 
   useEffect(() => {
