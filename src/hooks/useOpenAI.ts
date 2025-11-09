@@ -130,7 +130,7 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers }: UseOpenAIOptio
             // Fetch top 5 POIs from Supabase
             const { data, error } = await supabase
               .from('pois')
-              .select('id, name, lat, lon')
+              .select('id, name, lat, lon, rating, image_url')
               .order('id', { ascending: true })
               .limit(5);
 

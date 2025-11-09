@@ -187,14 +187,102 @@ const Map = forwardRef<MapRef>((props, ref) => {
 
       // Add new markers
       poiMarkers.forEach(poi => {
+        // Generate star rating HTML
+        const renderStars = (rating: number) => {
+          const fullStars = Math.floor(rating);
+          const hasHalfStar = rating % 1 >= 0.5;
+          let starsHTML = '';
+
+          for (let i = 0; i < fullStars; i++) {
+            starsHTML += '<span style="color: #fbbf24; font-size: 16px;">★</span>';
+          }
+          if (hasHalfStar) {
+            starsHTML += '<span style="color: #fbbf24; font-size: 16px;">⯨</span>';
+          }
+          const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+          for (let i = 0; i < emptyStars; i++) {
+            starsHTML += '<span style="color: #9ca3af; font-size: 16px;">★</span>';
+          }
+          return starsHTML;
+        };
+
         const marker = new mapboxgl.Marker({ color: '#ef4444' })
           .setLngLat([poi.lon, poi.lat])
           .setPopup(
-            new mapboxgl.Popup({ offset: 25 })
+            new mapboxgl.Popup({
+              offset: 25,
+              maxWidth: '300px',
+              className: 'custom-popup'
+            })
               .setHTML(`
-                <div style="padding: 8px;">
-                  <h3 style="font-weight: bold; margin-bottom: 4px;">${poi.name}</h3>
-                  ${poi.rating ? `<p style="font-size: 12px;">Rating: ${poi.rating}</p>` : ''}
+                <div style="
+                  min-width: 250px;
+                  border-radius: 12px;
+                  overflow: hidden;
+                  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                ">
+                  ${poi.image_url ? `
+                    <div style="
+                      width: 100%;
+                      height: 160px;
+                      overflow: hidden;
+                      background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4));
+                    ">
+                      <img
+                        src="${poi.image_url}"
+                        alt="${poi.name}"
+                        style="
+                          width: 100%;
+                          height: 100%;
+                          object-fit: cover;
+                          display: block;
+                        "
+                        onerror="this.parentElement.style.display='none'"
+                      />
+                    </div>
+                  ` : ''}
+                  <div style="padding: 16px;">
+                    <h3 style="
+                      font-size: 18px;
+                      font-weight: 700;
+                      margin: 0 0 8px 0;
+                      color: #f1f5f9;
+                      line-height: 1.3;
+                      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    ">${poi.name}</h3>
+                    ${poi.rating ? `
+                      <div style="
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin-top: 8px;
+                      ">
+                        <div style="display: flex; gap: 2px;">
+                          ${renderStars(poi.rating)}
+                        </div>
+                        <span style="
+                          font-size: 14px;
+                          font-weight: 600;
+                          color: #fbbf24;
+                          text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                        ">${poi.rating.toFixed(1)}</span>
+                      </div>
+                    ` : ''}
+                    <div style="
+                      margin-top: 12px;
+                      padding-top: 12px;
+                      border-top: 1px solid rgba(148, 163, 184, 0.2);
+                    ">
+                      <p style="
+                        font-size: 12px;
+                        color: #94a3b8;
+                        margin: 0;
+                        font-weight: 500;
+                      ">📍 Top Attraction in Linz</p>
+                    </div>
+                  </div>
                 </div>
               `)
           )

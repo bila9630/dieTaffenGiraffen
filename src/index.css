@@ -61,3 +61,33 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Mapbox Popup Styles */
+.mapboxgl-popup-content {
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: #0f172a !important;
+  border-bottom-color: #0f172a !important;
+}
+
+.mapboxgl-popup-close-button {
+  color: #f1f5f9 !important;
+  font-size: 24px !important;
+  padding: 8px 12px !important;
+  background: rgba(15, 23, 42, 0.8) !important;
+  border-radius: 0 12px 0 8px !important;
+  transition: all 0.2s ease !important;
+  right: 0 !important;
+  top: 0 !important;
+  z-index: 10 !important;
+}
+
+.mapboxgl-popup-close-button:hover {
+  background: rgba(239, 68, 68, 0.9) !important;
+  color: white !important;
+}
