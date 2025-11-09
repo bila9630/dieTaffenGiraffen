@@ -1,10 +1,10 @@
-import { Cloud, Sun, CloudRain } from "lucide-react";
+import { Cloud, Sun, CloudRain, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useBoxVisibility } from "@/hooks/useBoxVisibility";
 
 const WeatherBox = () => {
-  const { expansionSettings, updateExpansion } = useBoxVisibility();
+  const { expansionSettings, updateExpansion, hikingWeatherSuccess } = useBoxVisibility();
   const isExpanded = expansionSettings.weatherBoxExpanded;
 
   // Mock weather data for the week
@@ -34,7 +34,7 @@ const WeatherBox = () => {
   };
 
   return (
-    <Card className="w-72 border-glass-border bg-card/70 backdrop-blur-xl">
+    <Card className={`w-72 border-glass-border bg-card/70 backdrop-blur-xl transition-all duration-500 ${hikingWeatherSuccess ? 'ring-2 ring-green-500/50 shadow-lg shadow-green-500/20' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -50,6 +50,12 @@ const WeatherBox = () => {
               {isExpanded ? '−' : '+'}
             </Button>
           </div>
+          {hikingWeatherSuccess && (
+            <div className="mt-2 flex items-center gap-1.5 rounded-md bg-green-500/10 px-2.5 py-1.5 text-green-600 dark:text-green-400 animate-in fade-in slide-in-from-top-2 duration-300">
+              <Check className="h-3.5 w-3.5" />
+              <span className="text-xs font-medium">Ideal Hiking Weather</span>
+            </div>
+          )}
         </CardHeader>
 
         {isExpanded && (

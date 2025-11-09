@@ -214,7 +214,7 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
             setHikingLoadingStep(1); // Step 2: check weather
             // Show WeatherBox and hide InfoBox when checking weather
             onHikingRouteLinz?.();
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
             setHikingLoadingStep(2); // Step 3: display result
             await new Promise(resolve => setTimeout(resolve, 1000));

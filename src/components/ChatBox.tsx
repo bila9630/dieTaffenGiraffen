@@ -212,7 +212,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
                                 <div className="h-4 w-4 rounded-full border-2 border-muted flex-shrink-0" />
                               )}
                               <span className={`text-xs ${index <= hikingLoadingStep ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                {step}
+                                {index === 1 && hikingLoadingStep > 1 ? `${step} ✓ Perfect conditions!` : step}
                               </span>
                             </div>
                           ))}

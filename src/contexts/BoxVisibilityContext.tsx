@@ -18,6 +18,7 @@ interface BoxVisibilityContextType {
   updateExpansion: (key: keyof BoxExpansionSettings, value: boolean) => void;
   check_visitor_capacity: () => void;
   hiking_route_linz: () => void;
+  hikingWeatherSuccess: boolean;
 }
 
 const STORAGE_KEY = 'box_visibility_settings';
@@ -55,6 +56,7 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
   });
 
   const [expansionSettings, setExpansionSettings] = useState<BoxExpansionSettings>(DEFAULT_EXPANSION);
+  const [hikingWeatherSuccess, setHikingWeatherSuccess] = useState(false);
 
   useEffect(() => {
     try {
@@ -104,6 +106,12 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
       weatherBoxExpanded: true,
       infoBoxExpanded: false,
     }));
+    // Show success state
+    setHikingWeatherSuccess(true);
+    // Auto-clear after 4 seconds
+    setTimeout(() => {
+      setHikingWeatherSuccess(false);
+    }, 4000);
   };
 
   return (
@@ -114,7 +122,8 @@ export const BoxVisibilityProvider = ({ children }: BoxVisibilityProviderProps) 
         expansionSettings,
         updateExpansion,
         check_visitor_capacity,
-        hiking_route_linz
+        hiking_route_linz,
+        hikingWeatherSuccess
       }}
     >
       {children}
