@@ -198,7 +198,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
                     <div className="flex justify-start">
                       <div className="max-w-[80%] rounded-lg bg-secondary px-4 py-3 text-secondary-foreground">
                         <div className="mb-2 text-sm font-semibold">hiking linz</div>
-                        <div className="space-y-2 rounded-lg border border-border/50 bg-background/20 p-3">
+                        <div className="space-y-2">
                           {['search hiking trip', 'check weather', 'display result'].map((step, index) => (
                             <div key={index} className="flex items-center gap-2">
                               {index < hikingLoadingStep ? (
