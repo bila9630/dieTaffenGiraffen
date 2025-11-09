@@ -289,7 +289,12 @@ const Map = forwardRef<MapRef>((props, ref) => {
         stars.push(<span key={`full-${i}`} className="text-yellow-400 text-xs">★</span>);
       }
       if (hasHalfStar) {
-        stars.push(<span key="half" className="text-yellow-400 text-xs">⯨</span>);
+        stars.push(
+          <span key="half" className="relative inline-block text-xs" style={{ width: '0.75em' }}>
+            <span className="absolute text-gray-400">★</span>
+            <span className="absolute text-yellow-400" style={{ clipPath: 'inset(0 50% 0 0)' }}>★</span>
+          </span>
+        );
       }
       const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
       for (let i = 0; i < emptyStars; i++) {
