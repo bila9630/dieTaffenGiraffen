@@ -425,19 +425,17 @@ const Map = forwardRef<MapRef>((props, ref) => {
       }
 
       // Hardcoded hiking route coordinates near Linz (Pöstlingberg area)
-      // This creates a circular hiking route
+      // This creates an interesting point-to-point hiking route in the countryside
       const routeCoordinates: [number, number][] = [
-        [14.2654, 48.3250], // Start point
-        [14.2680, 48.3290], // Waypoint 1
-        [14.2750, 48.3310], // Waypoint 2
-        [14.2820, 48.3300], // Waypoint 3
-        [14.2880, 48.3260], // Waypoint 4
-        [14.2900, 48.3210], // Waypoint 5
-        [14.2870, 48.3160], // Waypoint 6
-        [14.2800, 48.3130], // Waypoint 7
-        [14.2720, 48.3150], // Waypoint 8
-        [14.2670, 48.3200], // Waypoint 9
-        [14.2654, 48.3250], // Back to start (closes the loop)
+        [14.2400, 48.3450], // Start point (northwest, outside city)
+        [14.2420, 48.3465], // Head north into hills
+        [14.2445, 48.3480], // Climb to ridge
+        [14.2470, 48.3490], // Ridge viewpoint
+        [14.2495, 48.3495], // Continue along ridge
+        [14.2520, 48.3490], // Turn east
+        [14.2540, 48.3480], // Descend gradually
+        [14.2555, 48.3465], // Through forest
+        [14.2565, 48.3450], // End point (northeast, outside city)
       ];
 
       // Remove existing route layer and source if they exist
@@ -476,12 +474,62 @@ const Map = forwardRef<MapRef>((props, ref) => {
         },
       });
 
-      // Add marker at start/end point only
-      const startMarker = new mapboxgl.Marker({ color: '#22c55e' }) // Green for start
+      // Create custom marker elements with backgrounds
+      const createMarkerElement = (imageSrc: string, size: number, bgColor: string) => {
+        const container = document.createElement('div');
+        container.style.width = `${size + 12}px`;
+        container.style.height = `${size + 12}px`;
+        container.style.backgroundColor = bgColor;
+        container.style.borderRadius = '50%';
+        container.style.border = '3px solid white';
+        container.style.boxShadow = '0 2px 8px rgba(0,0,0,0.5)';
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.justifyContent = 'center';
+        container.style.cursor = 'pointer';
+
+        const img = document.createElement('img');
+        img.src = imageSrc;
+        img.style.width = `${size}px`;
+        img.style.height = `${size}px`;
+        img.style.display = 'block';
+
+        container.appendChild(img);
+        return container;
+      };
+
+      const startEl = createMarkerElement('/start.png', 40, '#22c55e');
+      const endEl = createMarkerElement('/the-end.png', 40, '#ef4444');
+
+      // Add markers with custom images
+      const startMarker = new mapboxgl.Marker({ element: startEl })
         .setLngLat(routeCoordinates[0])
-        .setPopup(new mapboxgl.Popup().setHTML('<strong>Start/End</strong>'))
+        .setPopup(new mapboxgl.Popup().setHTML('<strong>Start</strong>'))
         .addTo(map.current);
       markers.current.push(startMarker);
+
+      // Add two waypoint markers along the route
+      const waypoint1El = createMarkerElement('/hiking.png', 35, '#3b82f6');
+
+      const waypoint1Marker = new mapboxgl.Marker({ element: waypoint1El })
+        .setLngLat(routeCoordinates[3])
+        .setPopup(new mapboxgl.Popup().setHTML('<strong>Scenic Viewpoint</strong>'))
+        .addTo(map.current);
+      markers.current.push(waypoint1Marker);
+
+      const waypoint2El = createMarkerElement('/hiking.png', 35, '#3b82f6');
+
+      const waypoint2Marker = new mapboxgl.Marker({ element: waypoint2El })
+        .setLngLat(routeCoordinates[6])
+        .setPopup(new mapboxgl.Popup().setHTML('<strong>Rest Stop</strong>'))
+        .addTo(map.current);
+      markers.current.push(waypoint2Marker);
+
+      const endMarker = new mapboxgl.Marker({ element: endEl })
+        .setLngLat(routeCoordinates[routeCoordinates.length - 1])
+        .setPopup(new mapboxgl.Popup().setHTML('<strong>End</strong>'))
+        .addTo(map.current);
+      markers.current.push(endMarker);
 
       // Fit map to show the entire route
       const bounds = new mapboxgl.LngLatBounds();
