@@ -415,6 +415,7 @@ const Map = forwardRef<MapRef>((props, ref) => {
       markers.current = [];
       setActivePOIs([]);
       setHiddenGem(null);
+      setShowHikingRoute(false);
 
       // Remove highlight layer if it exists
       if (map.current.getLayer('highlighted-building')) {

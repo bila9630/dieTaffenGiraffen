@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, Key } from 'lucide-react';
+import { Send, MessageCircle, Key, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -38,7 +38,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { check_visitor_capacity } = useBoxVisibility();
-  const { sendMessage, isLoading } = useOpenAI({
+  const { sendMessage, isLoading, hikingLoadingStep } = useOpenAI({
     onZoomToLocation,
     onDisplayMarkers,
     onDisplayHiddenGem,
@@ -48,7 +48,7 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, hikingLoadingStep]);
 
   const handleSaveApiKey = (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,7 +194,30 @@ const ChatBox = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onDis
                       </div>
                     </div>
                   ))}
-                  {isLoading && (
+                  {hikingLoadingStep >= 0 && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] rounded-lg bg-secondary px-4 py-3 text-secondary-foreground">
+                        <div className="mb-2 text-sm font-semibold">hiking linz</div>
+                        <div className="space-y-2 rounded-lg border border-border/50 bg-background/20 p-3">
+                          {['search hiking trip', 'check weather', 'display result'].map((step, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              {index < hikingLoadingStep ? (
+                                <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                              ) : index === hikingLoadingStep ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
+                              ) : (
+                                <div className="h-4 w-4 rounded-full border-2 border-muted flex-shrink-0" />
+                              )}
+                              <span className={`text-xs ${index <= hikingLoadingStep ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                {step}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {isLoading && hikingLoadingStep < 0 && (
                     <div className="flex justify-start">
                       <div className="max-w-[80%] rounded-lg bg-secondary px-4 py-2 text-secondary-foreground">
                         <div className="flex gap-1">

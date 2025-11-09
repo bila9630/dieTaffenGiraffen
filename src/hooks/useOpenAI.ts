@@ -52,6 +52,7 @@ const createOpenAIClient = (apiKey: string): OpenAI => {
  */
 export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenGem, onCheckVisitorCapacity, onDisplayHikingRoute }: UseOpenAIOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [hikingLoadingStep, setHikingLoadingStep] = useState<number>(-1);
   const { toast } = useToast();
 
   const sendMessage = async (
@@ -202,6 +203,18 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
             // Display and expand the InfoBox
             onCheckVisitorCapacity?.();
           } else if (toolCall.type === 'function' && toolCall.function?.name === 'hiking_route_linz') {
+            // Display loading steps for hiking route
+            setHikingLoadingStep(0); // Step 1: search hiking trip
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            setHikingLoadingStep(1); // Step 2: check weather
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            setHikingLoadingStep(2); // Step 3: display result
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            setHikingLoadingStep(-1); // Hide loading
+
             // Display the hiking route on the map
             await onDisplayHikingRoute?.();
           }
@@ -233,5 +246,6 @@ export const useOpenAI = ({ onZoomToLocation, onDisplayMarkers, onDisplayHiddenG
   return {
     sendMessage,
     isLoading,
+    hikingLoadingStep,
   };
 };
